@@ -1,0 +1,72 @@
+<?php
+   session_start();
+   include('include/config.php');
+   if(strlen($_SESSION['alogin'])==0)
+   	{	
+   header('location:index.php');
+   }
+   else{   
+   
+   ?>
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+       <?php include('include/head.php');?>
+   </head>
+   <body>
+      <?php include('include/header.php');?>
+      <div class="wrapper">
+         <div class="container">
+            <div class="row">
+               <?php include('include/sidebar.php');?>				
+               <div class="span9">
+                  <div class="content">
+                     <div class="module">
+                        <div class="module-head">
+                           <h3>Manage Company Info.</h3>
+                        </div>
+                        <div class="module-body table">
+                           <table cellpadding="0" cellspacing="0" border="0" class="datatable-1 table table-bordered table-striped	 display" width="100%">
+                              <thead>
+                                 <tr>
+                                    <th>#</th>
+                                    <th>Cashoff Payment</th>
+                                    <th>Cashoff Value</th>
+                                    <th>Status</th>
+                                    <th>Creation Date</th>
+                                    <th>Action</th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 <?php $query=mysqli_query($con,"select * from cashoffpayment");
+                                    $cnt=1;
+                                    while($row=mysqli_fetch_array($query))
+                                    {
+                                    ?>									
+                                 <tr>
+                                    <td><?php echo htmlentities($cnt);?></td>
+                                    <td><?php echo htmlentities($row['cashoff']);?>%</td>
+                                    <td><?php echo htmlentities($row['value']);?></td>
+                                    <td><?php echo htmlentities($row['status']);?></td>
+                                    <td> <?php echo htmlentities($row['creation_date']);?></td>
+                                    <td>
+                                       <a href="edit-cashoff.php?id=<?php echo $row['id']?>" ><i class="icon-edit"></i></a>
+                                    </td>
+                                 </tr>
+                                 <?php $cnt=$cnt+1; } ?>
+                           </table>
+                        </div>
+                     </div>
+                  </div>
+                  <!--/.content-->
+               </div>
+               <!--/.span9-->
+            </div>
+         </div>
+         <!--/.container-->
+      </div>
+      <!--/.wrapper-->
+      <?php include('include/footer.php');?>
+      <?php include('include/js.php');?>
+   </body>
+   <?php } ?>
