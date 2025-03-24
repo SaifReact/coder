@@ -55,13 +55,17 @@
                                     <a href="basic.php">
                                         <i class="fas fa-tachometer-alt"></i>Company Info</a>
                                 </li>
+								<li>
+                                    <a href="policy.php">
+                                        <i class="fas fa-tachometer-alt"></i>Policy Info</a>
+                                </li>
                                 <li>
-                                    <a href="index2.html">
+                                    <a href="images.php">
                                         <i class="fas fa-tachometer-alt"></i>Import Images</a>
                                 </li>
 								<li>
-                                    <a href="index2.html">
-                                        <i class="fas fa-tachometer-alt"></i>Cashoff Pay</a>
+                                    <a href="coupon.php">
+                                        <i class="fas fa-tachometer-alt"></i>Coupon</a>
                                 </li>
                             </ul>
                         </li>

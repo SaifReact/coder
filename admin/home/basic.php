@@ -8,9 +8,8 @@ if (empty($_SESSION['alogin'])) {
 }
 
 $basicId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$basic = ['compName' => '', 'compName_en' => '', 'compDescription'  => '', 'address'  => '', 'phone'  => '', 'office_phone'  => '', 'email'  => '', 
-'logo'  => '', 'currency'  => '', 'facebook'  => '', 'twitter'  => '', 'linkedin'  => '', 'open_time'  => '', 'off_time'  => '', 'delivery_process'  => '', 
-'seller_policy'  => '', 'return_policy'  => '', 'support_policy'  => ''];
+$basic = ['compName' => '', 'compName_en' => '', 'address'  => '', 'phone'  => '', 'office_phone'  => '', 'email'  => '', 
+'logo'  => '', 'currency'  => '', 'facebook'  => '', 'twitter'  => '', 'linkedin'  => '', 'open_time'  => '', 'off_time'  => '', 'delivery_process'  => ''];
 
 function getBasic($con, $basicId) {
     $stmt = $con->prepare("SELECT * FROM basic WHERE id = ?");
@@ -53,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitize and assign input data, falling back to empty strings where needed
     $compName = trim($_POST['compName'] ?? '');
     $compName_en = trim($_POST['compName_en'] ?? '');
-    $compDescription = trim($_POST['compDescription'] ?? '');
     $address = trim($_POST['address'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $office_phone = trim($_POST['office_phone'] ?? '');
@@ -64,9 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $open_time = trim($_POST['open_time'] ?? '');
     $off_time = trim($_POST['off_time'] ?? '');
     $delivery_process = trim($_POST['delivery_process'] ?? '');
-    $seller_policy = trim($_POST['seller_policy'] ?? '');
-    $return_policy = trim($_POST['return_policy'] ?? '');
-    $support_policy = trim($_POST['support_policy'] ?? '');
 
     // Prevent processing if required fields are missing
     if (empty($compName) || empty($compName_en)) {
@@ -95,7 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Update category only if there are changes
         if ($compName !== $basic['compName'] || 
 		$compName_en !== $basic['compName_en'] || 
-		$compDescription !== $basic['compDescription'] ||
 		$address = $basic['address'] ||
 		$phone = $basic['phone'] ||
 		$office_phone = $basic['office_phone'] ||
@@ -107,16 +101,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$linkedin = $basic['linkedin'] ||
 		$open_time = $basic['open_time'] ||
 		$off_time = $basic['off_time'] ||
-		$delivery_process = $basic['delivery_process'] ||
-		$seller_policy = $basic['seller_policy'] ||
-		$return_policy = $basic['return_policy'] ||
-		$support_policy = $basic['support_policy']) {
-            $stmt = $con->prepare("UPDATE company SET compName = ?, compName_en = ?, compDescription = ?, address = ?, office_phone = ?, 
-			email = ?, logo = ?, currency = ?, facebook = ?,twitter = ?,linkedin = ?, open_time = ?, off_time = ?,delivery_process = ?, seller_policy = ?,
-			return_policy = ?,support_policy = ? WHERE id = ?");
-            $stmt->bind_param("ssssi", $compName, $compName_en, $compDescription, $address, $phone, $office_phone, $email, 
-			$newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $off_time, $delivery_process, 
-			$seller_policy, $return_policy, $support_policy, $basicId);
+		$delivery_process = $basic['delivery_process']) {
+            $stmt = $con->prepare("UPDATE company SET compName = ?, compName_en = ?, address = ?, office_phone = ?, 
+			email = ?, logo = ?, currency = ?, facebook = ?,twitter = ?,linkedin = ?, open_time = ?, off_time = ?,delivery_process = ? WHERE id = ?");
+            $stmt->bind_param("ssssi", $compName, $compName_en, $address, $phone, $office_phone, $email, 
+			$newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $off_time, $delivery_process, $basicId);
             $stmt->execute();
             $stmt->close();
 
@@ -218,8 +207,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        </div>
 									   <div class="col-6">
                                           <div class="form-group">
-                                             <label for="compDescription" class="control-label mb-1">Description ( বর্ণনা)</label>
-											 <textarea name="compDescription" id="compDescription" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['compDescription'] ?? ''); ?></textarea>
+                                             <label for="delivery_process" class="control-label mb-1">Delivery Method ( ডেলিভারি মেথড )</label>
+                                             <textarea name="delivery_process" id="delivery_process" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['delivery_process'] ?? ''); ?></textarea>
                                           </div>
                                        </div>
                                     </div>
@@ -277,30 +266,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                           <label for="linkedin" class="control-label mb-1">Close Time ( বন্ধের সময় )</label>
                                           <input id="linkedin" name="linkedin" type="text" class="form-control linkedin valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="facebook" aria-required="true" aria-invalid="false" aria-describedby="linkedin-error"
                                              placeholder="Enter Company Linkedin" value="<?php echo htmlentities($basic['linkedin']); ?>" required>
-                                       </div>
-                                    </div>
-									<div class="row">
-                                       <div class="col-6">
-                                          <div class="form-group">
-                                             <label for="delivery_process" class="control-label mb-1">Delivery Method ( ডেলিভারি মেথড )</label>
-                                             <textarea name="delivery_process" id="delivery_process" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['delivery_process'] ?? ''); ?></textarea>
-                                          </div>
-                                       </div>
-                                       <div class="col-6">
-                                          <label for="seller_policy" class="control-label mb-1">Seller Policy ( বিক্রয় নীতি  )</label>
-                                          <textarea name="seller_policy" id="seller_policy" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['seller_policy'] ?? ''); ?></textarea>
-                                       </div>
-                                    </div>
-									<div class="row">
-                                       <div class="col-6">
-                                          <div class="form-group">
-                                             <label for="return_policy" class="control-label mb-1">Return Policy ( রিটার্ন পলিসি )</label>
-                                             <textarea name="return_policy" id="return_policy" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['return_policy'] ?? ''); ?></textarea>
-                                          </div>
-                                       </div>
-                                       <div class="col-6">
-                                          <label for="support_policy" class="control-label mb-1">Support Policy ( সমর্থন নীতি )</label>
-                                          <textarea name="support_policy" id="support_policy" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['support_policy'] ?? ''); ?></textarea>
                                        </div>
                                     </div>
 									<div class="row">
