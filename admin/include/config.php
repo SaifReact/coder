@@ -10,21 +10,26 @@
     echo "Failed to connect to MySQL: " . mysqli_connect_error();
    }
    
-   	$sql=mysqli_query($con,"select * from basic where id='1'");
+
+	$sql=mysqli_query($con,"select * from basic where id='1'");
 	while($row=mysqli_fetch_array($sql))
 	{	
 	    $id=$row['id'];
-		$currency=$row['currency'];
 		$compName=$row['compName'];
-		$compName=$row['compName_en'];
-		$compDescription=$row['compDescription'];
+		$compName_en=$row['compName_en'];
 		$address=$row['address'];
 		$logo=$row['logo'];
-		$phone1=$row['phone'];
-		$phone2=$row['office_phone'];
+		$currency=$row['currency'];
+		$phone=$row['phone'];
+		$office_phone=$row['office_phone'];
 		$email=$row['email'];
 		$facebook=$row['facebook'];
 		$twitter=$row['twitter'];
 		$linkedin=$row['linkedin'];
+		$delivery_method=$row['delivery_method'];
+		$messanger_group=$row['messanger_group'];
+		$whatapps_group=$row['whatapps_group'];
 	}
-   ?>
+	
+	
+?>

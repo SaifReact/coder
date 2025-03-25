@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 22, 2025 at 08:05 PM
+-- Generation Time: Mar 25, 2025 at 08:16 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.3
 
@@ -74,16 +74,21 @@ INSERT INTO `banner` (`id`, `bannerName`, `bannerType`) VALUES
 CREATE TABLE `basic` (
   `id` int(11) NOT NULL,
   `compName` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
-  `compDescription` longtext CHARACTER SET utf8mb4 NOT NULL,
+  `compName_en` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `address` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
-  `phone1` varchar(25) CHARACTER SET utf8mb4 NOT NULL,
-  `phone2` varchar(25) CHARACTER SET utf8mb4 NOT NULL,
+  `phone` varchar(25) CHARACTER SET utf8mb4 NOT NULL,
+  `office_phone` varchar(25) CHARACTER SET utf8mb4 NOT NULL,
   `email` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
   `logo` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
   `currency` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
   `facebook` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
   `twitter` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
   `linkedin` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `delivery_method` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `messanger_group` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
+  `whatapps_group` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
+  `open_time` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `close_time` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
   `updationDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -91,8 +96,8 @@ CREATE TABLE `basic` (
 -- Dumping data for table `basic`
 --
 
-INSERT INTO `basic` (`id`, `compName`, `compDescription`, `address`, `phone1`, `phone2`, `email`, `logo`, `currency`, `facebook`, `twitter`, `linkedin`, `updationDate`) VALUES
-(1, 'Coder Mart Ltd', '<br>', '10/A-3, Bardhan Bari, Darus Salam, Mirpur-1, Dhaka.', '01540505646', '', 'info@ecodermart.com', 'logo.png', 'tk.png', '', '', '', '2020-12-16 10:13:36');
+INSERT INTO `basic` (`id`, `compName`, `compName_en`, `address`, `phone`, `office_phone`, `email`, `logo`, `currency`, `facebook`, `twitter`, `linkedin`, `delivery_method`, `messanger_group`, `whatapps_group`, `open_time`, `close_time`, `updationDate`) VALUES
+(1, 'কোডার মার্ট লিঃ', 'Coder Mart Ltd', '10/A-3, Bardhan Bari, Darus Salam, Mirpur-1, Dhaka.', '01540505646', '01829041699', 'info@ecodermart.com', 'cat_67e300b9436dd7.93628532.jpg', 'cat_67e300b9437ca4.92549314.png', 'F', 'T', 'L', 'DM', 'mg', 'wg', '10', '20', '2025-03-25 19:05:47');
 
 -- --------------------------------------------------------
 
@@ -315,10 +320,10 @@ INSERT INTO `districts` (`id`, `division_id`, `name`, `bn_name`, `lat`, `lon`, `
 
 CREATE TABLE `images` (
   `id` int(11) NOT NULL,
-  `imagesName` varchar(255) NOT NULL,
-  `images` varchar(255) NOT NULL,
-  `buttonName` varchar(50) NOT NULL,
-  `imageSelect` varchar(30) NOT NULL,
+  `imgType` varchar(5) NOT NULL,
+  `image` varchar(255) NOT NULL,
+  `imgName` varchar(255) NOT NULL,
+  `imgDesc` varchar(255) NOT NULL,
   `status` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -1072,12 +1077,6 @@ ALTER TABLE `banner`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `basic`
---
-ALTER TABLE `basic`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `brands`
 --
 ALTER TABLE `brands`
@@ -1105,12 +1104,6 @@ ALTER TABLE `color`
 -- Indexes for table `currency`
 --
 ALTER TABLE `currency`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `images`
---
-ALTER TABLE `images`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1202,12 +1195,6 @@ ALTER TABLE `banner`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `basic`
---
-ALTER TABLE `basic`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
 -- AUTO_INCREMENT for table `brands`
 --
 ALTER TABLE `brands`
@@ -1236,12 +1223,6 @@ ALTER TABLE `color`
 --
 ALTER TABLE `currency`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `images`
---
-ALTER TABLE `images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `orders`

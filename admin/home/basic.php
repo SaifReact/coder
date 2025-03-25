@@ -9,7 +9,8 @@ if (empty($_SESSION['alogin'])) {
 
 $basicId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $basic = ['compName' => '', 'compName_en' => '', 'address'  => '', 'phone'  => '', 'office_phone'  => '', 'email'  => '', 
-'logo'  => '', 'currency'  => '', 'facebook'  => '', 'twitter'  => '', 'linkedin'  => '', 'open_time'  => '', 'off_time'  => '', 'delivery_process'  => ''];
+'logo'  => '', 'currency'  => '', 'facebook'  => '', 'twitter'  => '', 'linkedin'  => '', 'open_time'  => '', 'close_time'  => '', 
+'delivery_process'  => '', 'messanger_group' => '', 'whatapps_group' => ''];
 
 function getBasic($con, $basicId) {
     $stmt = $con->prepare("SELECT * FROM basic WHERE id = ?");
@@ -60,8 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $twitter = trim($_POST['twitter'] ?? '');
     $linkedin = trim($_POST['linkedin'] ?? '');
     $open_time = trim($_POST['open_time'] ?? '');
-    $off_time = trim($_POST['off_time'] ?? '');
-    $delivery_process = trim($_POST['delivery_process'] ?? '');
+    $close_time = trim($_POST['close_time'] ?? '');
+    $delivery_method = trim($_POST['delivery_method'] ?? '');
+	$messanger_group = trim($_POST['messanger_group'] ?? '');
+	$whatapps_group = trim($_POST['whatapps_group'] ?? '');
 
     // Prevent processing if required fields are missing
     if (empty($compName) || empty($compName_en)) {
@@ -87,46 +90,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check if category is being updated
     if ($basicId > 0) {
-        // Update category only if there are changes
-        if ($compName !== $basic['compName'] || 
-		$compName_en !== $basic['compName_en'] || 
-		$address = $basic['address'] ||
-		$phone = $basic['phone'] ||
-		$office_phone = $basic['office_phone'] ||
-		$email = $basic['email'] ||
-		$newLogoImageName !== $basic['logo'] || 
-		$newCurrImageName !== $basic['currency'] ||
-		$facebook = $basic['facebook'] ||
-		$twitter = $basic['twitter'] ||
-		$linkedin = $basic['linkedin'] ||
-		$open_time = $basic['open_time'] ||
-		$off_time = $basic['off_time'] ||
-		$delivery_process = $basic['delivery_process']) {
-            $stmt = $con->prepare("UPDATE company SET compName = ?, compName_en = ?, address = ?, office_phone = ?, 
-			email = ?, logo = ?, currency = ?, facebook = ?,twitter = ?,linkedin = ?, open_time = ?, off_time = ?,delivery_process = ? WHERE id = ?");
-            $stmt->bind_param("ssssi", $compName, $compName_en, $address, $phone, $office_phone, $email, 
-			$newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $off_time, $delivery_process, $basicId);
-            $stmt->execute();
-            $stmt->close();
+    // Check if any data has changed
+    if (
+        $compName !== $basic['compName'] || 
+        $compName_en !== $basic['compName_en'] || 
+        $address !== $basic['address'] ||
+        $phone !== $basic['phone'] ||
+        $office_phone !== $basic['office_phone'] ||
+        $email !== $basic['email'] ||
+        $newLogoImageName !== $basic['logo'] || 
+        $newCurrImageName !== $basic['currency'] ||
+        $facebook !== $basic['facebook'] ||
+        $twitter !== $basic['twitter'] ||
+        $linkedin !== $basic['linkedin'] ||
+        $open_time !== $basic['open_time'] ||
+        $close_time !== $basic['close_time'] ||
+        $delivery_method !== $basic['delivery_method'] ||
+        $messanger_group !== $basic['messanger_group'] ||
+        $whatapps_group !== $basic['whatapps_group']
+    ) {
+        // Prepare the SQL statement
+        $stmt = $con->prepare("UPDATE basic SET compName = ?, compName_en = ?, address = ?, phone = ?, office_phone = ?, 
+        email = ?, logo = ?, currency = ?, facebook = ?, twitter = ?, linkedin = ?, open_time = ?, close_time = ?, 
+        delivery_method = ?, messanger_group = ?, whatapps_group = ? WHERE id = ?");
 
-            // Move the uploaded images to the appropriate directories
-            if ($_FILES['logo']['name']) {
-                $logoDir = "../logo/$basicId";
-                if (!is_dir($logoDir)) mkdir($logoDir, 0777, true);
+        if ($stmt === false) {
+            die("Prepare failed: " . $con->error);
+        }
+
+        // Bind parameters
+        $stmt->bind_param(
+            "ssssssssssssssssi",
+            $compName, $compName_en, $address, $phone, $office_phone, $email, 
+            $newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time, 
+            $delivery_method, $messanger_group, $whatapps_group, $basicId
+        );
+
+        // Execute and close
+        if ($stmt->execute()) {
+            // Move the uploaded images if they exist
+            $logoDir = "../logo/$basicId";
+            if (!is_dir($logoDir)) mkdir($logoDir, 0777, true);
+
+            if (!empty($_FILES['logo']['name'])) {
                 move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
             }
 
-            if ($_FILES['currency']['name']) {
-                $currencyDir = "../logo/$basicId";
-                if (!is_dir($currencyDir)) mkdir($currencyDir, 0777, true);
-                move_uploaded_file($_FILES['currency']['tmp_name'], "$currencyDir/$newCurrImageName");
+            if (!empty($_FILES['currency']['name'])) {
+                move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
             }
 
             $_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
         } else {
-            $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
+            $_SESSION['warnmsg'] = "Update failed: " . $stmt->error;
         }
+
+        $stmt->close();
+    } else {
+        $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
     }
+} else {
+    $_SESSION['warnmsg'] = "Invalid ID!";
+}
+
 
     // Redirect to the basic.php page with appropriate messages
     header('Location: basic.php');
@@ -166,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <li class="list-inline-item">Basic (বেসিক) </li>
                                  </ul>
                               </div>
-							  <button id="submitBasic" class="au-btn au-btn-icon au-btn--green"><?php echo $basicId ? 'Update (হালনাগাদ করুন)' : 'Submit (সংরক্ষণ করুন)'; ?></button>
+							  <button id="submitBasic" class="au-btn au-btn-icon au-btn--green"><?php echo $basicId ? 'Update (হালনাগাদ করুন)' : ''; ?></button>
                            </div>
                         </div>
                      </div>
@@ -188,13 +214,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        <div class="col-6">
                                           <div class="form-group">
                                              <label for="compName_en" class="control-label mb-1">Company Name ( কোম্পানি নাম )</label>
-                                             <input id="compName_en" name="compName_en" type="text" class="form-control compName_en valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="compName_en" aria-required="true" aria-invalid="false" aria-describedby="compName_en-error"
+                                             <input id="compName_en" name="compName_en" type="text" class="form-control compName_en valid"  autocomplete="compName_en" aria-required="true" aria-invalid="false" aria-describedby="compName_en-error"
                                                 placeholder="Enter Company Name" value="<?php echo htmlentities($basic['compName_en']); ?>" required>
                                           </div>
                                        </div>
                                        <div class="col-6">
                                           <label for="compName_en" class="control-label mb-1">Company Name Bangla ( কোম্পানি নাম বাংলা)</label>
-                                          <input id="compName" name="compName" type="text" class="form-control compName valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="compName" aria-required="true" aria-invalid="false" aria-describedby="compName-error"
+                                          <input id="compName" name="compName" type="text" class="form-control compName valid"  autocomplete="compName" aria-required="true" aria-invalid="false" aria-describedby="compName-error"
                                              placeholder="Enter Company Name Bangla" value="<?php echo htmlentities($basic['compName']); ?>" required>
                                        </div>
                                     </div>
@@ -207,8 +233,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        </div>
 									   <div class="col-6">
                                           <div class="form-group">
-                                             <label for="delivery_process" class="control-label mb-1">Delivery Method ( ডেলিভারি মেথড )</label>
-                                             <textarea name="delivery_process" id="delivery_process" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['delivery_process'] ?? ''); ?></textarea>
+                                             <label for="delivery_method" class="control-label mb-1">Delivery Method ( ডেলিভারি মেথড )</label>
+                                             <textarea name="delivery_method" id="delivery_method" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['delivery_method'] ?? ''); ?></textarea>
                                           </div>
                                        </div>
                                     </div>
@@ -216,13 +242,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        <div class="col-6">
                                           <div class="form-group">
                                              <label for="phone" class="control-label mb-1">Phone ( ফোন নং  )</label>
-                                             <input id="phone" name="phone" type="text" class="form-control phone valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="phone" aria-required="true" aria-invalid="false" aria-describedby="phone-error"
+                                             <input id="phone" name="phone" type="text" class="form-control phone valid"  autocomplete="phone" aria-required="true" aria-invalid="false" aria-describedby="phone-error"
                                                 placeholder="Enter Phone No" value="<?php echo htmlentities($basic['phone']); ?>" required>
                                           </div>
                                        </div>
                                        <div class="col-6">
                                           <label for="office_phone" class="control-label mb-1">Office Phone ( অফিস ফোন নং )</label>
-                                          <input id="office_phone" name="office_phone" type="text" class="form-control office_phone valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="office_phone" aria-required="true" aria-invalid="false" aria-describedby="office_phone-error"
+                                          <input id="office_phone" name="office_phone" type="text" class="form-control office_phone valid"  autocomplete="office_phone" aria-required="true" aria-invalid="false" aria-describedby="office_phone-error"
                                              placeholder="Enter Office Phone No" value="<?php echo htmlentities($basic['office_phone']); ?>" required>
                                        </div>
                                     </div>
@@ -230,13 +256,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        <div class="col-6">
                                           <div class="form-group">
                                              <label for="email" class="control-label mb-1">Email ( ইমেইল )</label>
-                                             <input id="email" name="email" type="text" class="form-control email valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="email" aria-required="true" aria-invalid="false" aria-describedby="email-error"
+                                             <input id="email" name="email" type="text" class="form-control email valid"  autocomplete="email" aria-required="true" aria-invalid="false" aria-describedby="email-error"
                                                 placeholder="Enter Company Email" value="<?php echo htmlentities($basic['email']); ?>" required>
                                           </div>
                                        </div>
                                        <div class="col-6">
                                           <label for="facebook" class="control-label mb-1">Facebook ( ফেইসবুক )</label>
-                                          <input id="facebook" name="facebook" type="text" class="form-control facebook valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="facebook" aria-required="true" aria-invalid="false" aria-describedby="facebook-error"
+                                          <input id="facebook" name="facebook" type="text" class="form-control facebook valid"  autocomplete="facebook" aria-required="true" aria-invalid="false" aria-describedby="facebook-error"
                                              placeholder="Enter Company Facebook" value="<?php echo htmlentities($basic['facebook']); ?>" required>
                                        </div>
                                     </div>
@@ -244,28 +270,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        <div class="col-6">
                                           <div class="form-group">
                                              <label for="twitter" class="control-label mb-1">Twitter ( টুইটার )</label>
-                                             <input id="twitter" name="twitter" type="text" class="form-control twitter valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="twitter" aria-required="true" aria-invalid="false" aria-describedby="twitter-error"
+                                             <input id="twitter" name="twitter" type="text" class="form-control twitter valid"  autocomplete="twitter" aria-required="true" aria-invalid="false" aria-describedby="twitter-error"
                                                 placeholder="Enter Company Twitter" value="<?php echo htmlentities($basic['twitter']); ?>" required>
                                           </div>
                                        </div>
                                        <div class="col-6">
                                           <label for="linkedin" class="control-label mb-1">Linkedin ( লিঙ্কেডিন )</label>
-                                          <input id="linkedin" name="linkedin" type="text" class="form-control linkedin valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="facebook" aria-required="true" aria-invalid="false" aria-describedby="linkedin-error"
+                                          <input id="linkedin" name="linkedin" type="text" class="form-control linkedin valid"  autocomplete="facebook" aria-required="true" aria-invalid="false" aria-describedby="linkedin-error"
                                              placeholder="Enter Company Linkedin" value="<?php echo htmlentities($basic['linkedin']); ?>" required>
                                        </div>
                                     </div>
 									<div class="row">
                                        <div class="col-6">
                                           <div class="form-group">
-                                             <label for="twitter" class="control-label mb-1">Open Time ( খোলার সময় )</label>
-                                             <input id="twitter" name="twitter" type="text" class="form-control twitter valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="twitter" aria-required="true" aria-invalid="false" aria-describedby="twitter-error"
-                                                placeholder="Enter Company Twitter" value="<?php echo htmlentities($basic['twitter']); ?>" required>
+                                             <label for="messanger_group" class="control-label mb-1">Messanger Group ( মেসেঞ্জার গ্রুপ )</label>
+                                             <input id="messanger_group" name="messanger_group" type="text" class="form-control messanger_group valid"  autocomplete="messanger_group" aria-required="true" aria-invalid="false" aria-describedby="messanger_group-error"
+                                                placeholder="Enter Company Messanger Group" value="<?php echo htmlentities($basic['messanger_group']); ?>" required>
                                           </div>
                                        </div>
                                        <div class="col-6">
-                                          <label for="linkedin" class="control-label mb-1">Close Time ( বন্ধের সময় )</label>
-                                          <input id="linkedin" name="linkedin" type="text" class="form-control linkedin valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="facebook" aria-required="true" aria-invalid="false" aria-describedby="linkedin-error"
-                                             placeholder="Enter Company Linkedin" value="<?php echo htmlentities($basic['linkedin']); ?>" required>
+                                          <label for="whatapps_group" class="control-label mb-1">Whatapps Group ( হোয়াটঅ্যাপস গ্রুপ )</label>
+                                          <input id="whatapps_group" name="whatapps_group" type="text" class="form-control whatapps_group valid"  autocomplete="whatapps_group" aria-required="true" aria-invalid="false" aria-describedby="whatapps_group-error"
+                                             placeholder="Enter Company Whatapps Group" value="<?php echo htmlentities($basic['whatapps_group']); ?>" required>
+                                       </div>
+                                    </div>
+									<div class="row">
+                                       <div class="col-6">
+                                          <div class="form-group">
+                                             <label for="open_time" class="control-label mb-1">Open Time ( খোলার সময় )</label>
+                                             <input id="open_time" name="open_time" type="text" class="form-control open_time valid"  autocomplete="open_time" aria-required="true" aria-invalid="false" aria-describedby="open_time-error"
+                                                placeholder="Enter Company Open Time" value="<?php echo htmlentities($basic['open_time']); ?>" required>
+                                          </div>
+                                       </div>
+                                       <div class="col-6">
+                                          <label for="close_time" class="control-label mb-1">Close Time ( বন্ধের সময় )</label>
+                                          <input id="close_time" name="close_time" type="text" class="form-control close_time valid"  autocomplete="close_time" aria-required="true" aria-invalid="false" aria-describedby="close_time-error"
+                                             placeholder="Enter Company Close Time" value="<?php echo htmlentities($basic['close_time']); ?>" required>
                                        </div>
                                     </div>
 									<div class="row">
