@@ -366,7 +366,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 											<th>Phone <br>( ফোন নং )</th>
 											<th>Email <br>( ইমেইল  )</th>
 											<th>Currency <br>( মুদ্রা )</th>
-                                            <th>Creation Date <br>( সংরক্ষণ তারিখ )</th>
+                                            <th>Updation Date <br>( হালনাগাদ তারিখ )</th>
                                             <th>Action <br>( কর্ম পদ্ধতি )</th>
                                         </tr>
                                     </thead>

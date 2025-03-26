@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 25, 2025 at 08:16 PM
+-- Generation Time: Mar 26, 2025 at 08:53 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.3
 
@@ -60,10 +60,12 @@ CREATE TABLE `banner` (
 --
 
 INSERT INTO `banner` (`id`, `bannerName`, `bannerType`) VALUES
-(1, 'Slider', 'SL'),
-(2, 'After Slider', 'AS'),
-(3, 'After Product', 'AP'),
-(4, 'Others', 'OT');
+(1, 'Slider - স্লাইডার', 'SL'),
+(2, 'After Slider - স্লাইডারের পরে', 'AS'),
+(3, 'After Product - পণ্যের পরে', 'AP'),
+(4, 'Left Side - বাম পাশ', 'LS'),
+(5, 'Right Side - ডান দিক', 'RS'),
+(6, 'Others - অন্যান্য', 'OT');
 
 -- --------------------------------------------------------
 
@@ -122,27 +124,6 @@ INSERT INTO `brands` (`id`, `brandsName`, `brandsName_en`, `brandsImage`, `posti
 (15, 'ইয়োকো ফুডস্ এন্ড এগ্রো লিঃ', 'YOKO Foods & Agro Ltd', 'yoko.jpg', '2025-03-06 16:34:56'),
 (16, 'শেফ ফুডস ইন্ডাস্ট্রিস লিঃ', 'CHEF Foods Industries Ltd', 'chef.jpg', '2025-03-06 16:37:32'),
 (21, 'কোডার মার্ট লিঃ', 'Coder Mart Ltd', 'coder.jpg', '2025-03-06 18:07:12');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `cashoffpayment`
---
-
-CREATE TABLE `cashoffpayment` (
-  `id` int(11) NOT NULL,
-  `cashoff` int(11) NOT NULL,
-  `status` varchar(30) NOT NULL,
-  `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
-  `value` float DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `cashoffpayment`
---
-
-INSERT INTO `cashoffpayment` (`id`, `cashoff`, `status`, `creation_date`, `value`) VALUES
-(1, 50, 'Active', '2021-01-20 19:59:49', 0.5);
 
 -- --------------------------------------------------------
 
@@ -208,23 +189,24 @@ INSERT INTO `color` (`id`, `colorName`, `colorType`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `currency`
+-- Table structure for table `coupon`
 --
 
-CREATE TABLE `currency` (
+CREATE TABLE `coupon` (
   `id` int(11) NOT NULL,
-  `curName` varchar(50) NOT NULL,
-  `shortCurrency` varchar(10) NOT NULL,
-  `curName_bn` varchar(100) NOT NULL
+  `couponCode` varchar(100) NOT NULL,
+  `cashOff` float NOT NULL,
+  `value` float DEFAULT NULL,
+  `status` varchar(3) NOT NULL,
+  `creation_date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data for table `currency`
+-- Dumping data for table `coupon`
 --
 
-INSERT INTO `currency` (`id`, `curName`, `shortCurrency`, `curName_bn`) VALUES
-(1, 'BDT', 'Tk', ''),
-(2, 'Rupee', 'Rs', '');
+INSERT INTO `coupon` (`id`, `couponCode`, `cashOff`, `value`, `status`, `creation_date`) VALUES
+(5, 'coupon8.6', 8.6, 0.086, 'A', '2025-03-26 19:49:57');
 
 -- --------------------------------------------------------
 
@@ -327,30 +309,12 @@ CREATE TABLE `images` (
   `status` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- --------------------------------------------------------
-
 --
--- Table structure for table `modal`
+-- Dumping data for table `images`
 --
 
-CREATE TABLE `modal` (
-  `id` int(11) NOT NULL,
-  `modalName` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `dataToggle` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `creationDate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `icon` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `modal`
---
-
-INSERT INTO `modal` (`id`, `modalName`, `dataToggle`, `description`, `creationDate`, `icon`) VALUES
-(1, 'Seller Policy - বিক্রয় নীতি', 'sellPolicy', 'Hello', '2025-03-07 17:54:33', 'fa-file-text'),
-(2, 'Return Policy - রিটার্ন পলিসি', 'retPolicy', 'Hi', '2025-03-07 17:16:08', 'fa-mail-reply'),
-(3, 'Support Policy - সমর্থন নীতি', 'supPolicy', 'Bangladesh', '2025-03-07 17:15:49', 'fa-support'),
-(4, 'Coder Profile - কোডার প্রোফাইল', 'myProfile', 'Country', '2025-03-07 17:16:20', 'fa-dashboard');
+INSERT INTO `images` (`id`, `imgType`, `image`, `imgName`, `imgDesc`, `status`) VALUES
+(4, 'SL', 'img_67e44a83414858.56217708.jpg', 'banner-1', 'dffsddvdsv', 'I');
 
 -- --------------------------------------------------------
 
@@ -614,6 +578,31 @@ INSERT INTO `payment` (`id`, `orderId`, `paymentMethod`, `userId`, `payAmount`, 
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `policy`
+--
+
+CREATE TABLE `policy` (
+  `id` int(11) NOT NULL,
+  `policyName` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dataToggle` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `icon` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `updationDate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `policy`
+--
+
+INSERT INTO `policy` (`id`, `policyName`, `dataToggle`, `description`, `icon`, `updationDate`) VALUES
+(1, 'Seller Policy - বিক্রয় নীতি', 'selPolicy', 'Hello', 'fa-file-text', '2025-03-26 15:25:47'),
+(2, 'Return Policy - রিটার্ন পলিসি', 'retPolicy', 'Hi', 'fa-mail-reply', '2025-03-07 11:54:33'),
+(3, 'Support Policy - সমর্থন নীতি', 'supPolicy', 'Bangladesh is our mother land.', 'fa-support', '2025-03-26 15:23:47'),
+(4, 'Coder Profile - কোডার প্রোফাইল', 'codProfile', 'Bangladesh is our Favorite Country.', 'fa-dashboard', '2025-03-26 15:25:59');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `productreviews`
 --
 
@@ -737,27 +726,6 @@ INSERT INTO `subcategory` (`id`, `catId`, `subCatName`, `subCatName_en`, `creati
 (43, 2, 'শুদ্ধ পটেটো চিপস', 'Pure Potato Chips', '2025-03-22 18:37:45'),
 (44, 2, 'শুদ্ধ ঝাল মুড়ি', 'Pure Jhal Muri', '2025-03-22 18:37:48'),
 (45, 2, 'শুদ্ধ গ্রিন চিপস', 'Pure Green Chips', '2025-03-22 18:37:51');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `ticket`
---
-
-CREATE TABLE `ticket` (
-  `id` int(11) NOT NULL,
-  `ticketName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `ticketImg` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `ticket`
---
-
-INSERT INTO `ticket` (`id`, `ticketName`, `ticketImg`) VALUES
-(1, 'Free Delivery', 'Free-delivery.png'),
-(2, 'Money Back', 'Money-back.png'),
-(3, 'Special Offer', 'Special-offer.png');
 
 -- --------------------------------------------------------
 
@@ -1083,12 +1051,6 @@ ALTER TABLE `brands`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `cashoffpayment`
---
-ALTER TABLE `cashoffpayment`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `category`
 --
 ALTER TABLE `category`
@@ -1101,15 +1063,15 @@ ALTER TABLE `color`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `currency`
+-- Indexes for table `coupon`
 --
-ALTER TABLE `currency`
+ALTER TABLE `coupon`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `modal`
+-- Indexes for table `images`
 --
-ALTER TABLE `modal`
+ALTER TABLE `images`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1128,6 +1090,12 @@ ALTER TABLE `ordertrackhistory`
 -- Indexes for table `payment`
 --
 ALTER TABLE `payment`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `policy`
+--
+ALTER TABLE `policy`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1152,12 +1120,6 @@ ALTER TABLE `size`
 -- Indexes for table `subcategory`
 --
 ALTER TABLE `subcategory`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `ticket`
---
-ALTER TABLE `ticket`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1192,19 +1154,13 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `banner`
 --
 ALTER TABLE `banner`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `brands`
 --
 ALTER TABLE `brands`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
-
---
--- AUTO_INCREMENT for table `cashoffpayment`
---
-ALTER TABLE `cashoffpayment`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `category`
@@ -1219,10 +1175,16 @@ ALTER TABLE `color`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
--- AUTO_INCREMENT for table `currency`
+-- AUTO_INCREMENT for table `coupon`
 --
-ALTER TABLE `currency`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+ALTER TABLE `coupon`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `images`
+--
+ALTER TABLE `images`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -1235,6 +1197,12 @@ ALTER TABLE `orders`
 --
 ALTER TABLE `payment`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
+
+--
+-- AUTO_INCREMENT for table `policy`
+--
+ALTER TABLE `policy`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `productreviews`
@@ -1259,12 +1227,6 @@ ALTER TABLE `size`
 --
 ALTER TABLE `subcategory`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
-
---
--- AUTO_INCREMENT for table `ticket`
---
-ALTER TABLE `ticket`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `wishlist`
