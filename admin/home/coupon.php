@@ -168,7 +168,6 @@ if (isset($_GET['del']) && $couponId > 0) {
                                     </div>
                                  </form>
                               </div>
-							  
                            </div>
                         </div>
                      </div>

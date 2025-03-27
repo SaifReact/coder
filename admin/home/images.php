@@ -223,7 +223,7 @@ if (isset($_GET['del']) && $imageId > 0) {
 											</div>
 										</div>
 										<div class="col-6">
-											<label for="status">Status</label>
+											<label for="status">Status ( অবস্থা )</label>
 											<select name="status" id="status" class="form-control">
 												<option value="A" <?php echo ($image['status'] == 'A') ? 'Active' : ''; ?>>Active (সক্রিয়)</option>
 												<option value="I" <?php echo ($image['status'] == 'I') ? 'Inactive' : ''; ?>>Inactive (নিষ্ক্রিয়)</option>

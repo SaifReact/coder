@@ -1,35 +1,69 @@
 <?php
-   session_start();
-   error_reporting(0);
-   include("include/config.php");
-   if(isset($_POST['submit']))
-   {
-   	$username=$_POST['username'];
-   	$password=md5($_POST['password']);
-   $ret=mysqli_query($con,"SELECT * FROM admin WHERE username='$username' and password='$password'");
-   $num=mysqli_fetch_array($ret);
+session_start();
+error_reporting(0);
+include("include/config.php");
 
-   if($num>0)
-   {
-   $extra="home/index.php";
-   $_SESSION['alogin']=$_POST['username'];
-   $_SESSION['id']=$num['id'];
-   $host=$_SERVER['HTTP_HOST'];
-   $uri=rtrim(dirname($_SERVER['PHP_SELF']),'/\\');
-   header("location:http://$host$uri/$extra");
-   exit();
-   }
-   else
-   {
-   $_SESSION['errmsg']="Invalid username or password";
-   $extra="index.php";
-   $host  = $_SERVER['HTTP_HOST'];
-   $uri  = rtrim(dirname($_SERVER['PHP_SELF']),'/\\');
-   header("location:http://$host$uri/$extra");
-   exit();
-   }
-   }
-   ?>
+if (isset($_POST['submit'])) {
+    $userName = $_POST['userName'];
+    $password = md5($_POST['password']); // Hash password
+    $userIp = $_SERVER['REMOTE_ADDR']; // Get User IP
+    $logonTime = date("Y-m-d H:i:s");
+    $contactNo = NULL;
+    $userId = NULL;
+    $userEmail = NULL;
+
+    // Check login in admin table
+    $stmt = $con->prepare("SELECT id, contactNo FROM admin WHERE userName = ? AND password = ?");
+    $stmt->bind_param("ss", $userName, $password);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $admin = $result->fetch_assoc();
+
+    // If not found in admin, check the users table
+    if (!$admin) {
+        $stmt = $con->prepare("SELECT id, contactNo, userEmail FROM users WHERE userName = ? AND password = ?");
+        $stmt->bind_param("ss", $userName, $password);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+    }
+
+    // If user found in either admin or users table
+    if ($admin || $user) {
+        $userData = $admin ?: $user; // Use admin data if found, otherwise use user data
+        $_SESSION['alogin'] = $userName;
+        $_SESSION['id'] = $userData['id'];
+        $contactNo = $userData['contactNo'];
+        $userId = $userData['id'];
+        $userEmail = $user['userEmail'] ?? NULL; // Only for users, admin doesn't have userEmail
+
+        // Insert successful login attempt into userlog
+        $stmt = $con->prepare("INSERT INTO userlog (userName, userEmail, password, contactNo, userIp, status, logonTime) 
+                               VALUES (?, ?, ?, ?, ?, 1, ?)");
+        $stmt->bind_param("ssssss", $userName, $userEmail, $password, $contactNo, $userIp, $logonTime);
+        $stmt->execute();
+		
+		$_SESSION['userlog_id'] = $con->insert_id;
+
+        // Redirect to home page
+        $extra = "home/index.php";
+        $host = $_SERVER['HTTP_HOST'];
+        $uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+        header("location:http://$host$uri/$extra");
+        exit();
+    } else {
+        $_SESSION['errmsg'] = "Invalid username or password";
+
+        // Redirect back to login page
+        $extra = "index.php";
+        $host = $_SERVER['HTTP_HOST'];
+        $uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+        header("location:http://$host$uri/$extra");
+        exit();
+        exit();
+    }
+}
+?>
    
 <!DOCTYPE html>
 <html>
@@ -50,14 +84,14 @@
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-user"></i></span>
 						</div>
-						<input type="text" class="form-control" id="inputEmail" name="username" placeholder="username">
+						<input type="text" class="form-control" id="userName" name="userName" placeholder="username">
 						
 					</div>
 					<div class="input-group form-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-key"></i></span>
 						</div>
-						<input type="password" class="form-control" id="inputPassword" name="password" placeholder="password">
+						<input type="password" class="form-control" id="password" name="password" placeholder="password">
 					</div>
 					<div class="form-group">
 						<input type="submit" value="Login" name="submit" class="btn float-right login_btn">
