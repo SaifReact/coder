@@ -21,7 +21,7 @@ if (isset($_POST['submit'])) {
 
     // If not found in admin, check the users table
     if (!$admin) {
-        $stmt = $con->prepare("SELECT id, contactNo, userEmail FROM users WHERE userName = ? AND password = ?");
+        $stmt = $con->prepare("SELECT id, contactNo, email FROM cusupdeli WHERE userName = ? AND password = ? AND forwarding = 'usr' AND status = 'A'");
         $stmt->bind_param("ss", $userName, $password);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -35,7 +35,7 @@ if (isset($_POST['submit'])) {
         $_SESSION['id'] = $userData['id'];
         $contactNo = $userData['contactNo'];
         $userId = $userData['id'];
-        $userEmail = $user['userEmail'] ?? NULL; // Only for users, admin doesn't have userEmail
+        $userEmail = $user['email'] ?? NULL; // Only for users, admin doesn't have userEmail
 
         // Insert successful login attempt into userlog
         $stmt = $con->prepare("INSERT INTO userlog (userName, userEmail, password, contactNo, userIp, status, logonTime) 

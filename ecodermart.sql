@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 27, 2025 at 10:47 AM
+-- Generation Time: Mar 29, 2025 at 08:53 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.3
 
@@ -110,8 +110,8 @@ INSERT INTO `basic` (`id`, `compName`, `compName_en`, `address`, `phone`, `offic
 
 CREATE TABLE `brands` (
   `id` int(11) NOT NULL,
-  `brandsName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `brandsName_en` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `brandsName` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `brandsName_en` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
   `brandsImage` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `postingDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -148,7 +148,8 @@ INSERT INTO `category` (`id`, `catName`, `catName_en`, `catImage`, `creationDate
 (2, 'ফল এবং হিমায়িত', 'Fruits & Frozen', 'category_67cdbeb3089d99.55568847.jpg', '2025-03-09 16:15:47'),
 (3, 'রান্নার উপকরণ', 'Cooking Ingredients', 'category_67cdc41c8ec2b2.30608349.jpg', '2025-03-09 16:38:52'),
 (4, 'চকোলেট এবং ক্যান্ডি', 'Chocolates & Candy', 'category_67cdc43acdded7.36163599.jpg', '2025-03-09 16:39:22'),
-(5, 'স্ন্যাকস এবং পানীয়', 'Snacks & Beverages', 'category_67cdc4535c4a08.08438858.JPG', '2025-03-09 16:39:47');
+(5, 'স্ন্যাকস এবং পানীয়', 'Snacks & Beverages', 'category_67cdc4535c4a08.08438858.JPG', '2025-03-09 16:39:47'),
+(7, 'ট্রেডিং পণ্য', 'Trading Products', '', '2025-03-29 18:41:47');
 
 -- --------------------------------------------------------
 
@@ -167,7 +168,7 @@ CREATE TABLE `color` (
 --
 
 INSERT INTO `color` (`id`, `colorName`, `colorType`) VALUES
-(1, 'All Colors', 'All'),
+(1, 'All Colors', '0'),
 (2, 'Blue', 'B'),
 (3, 'Green', 'G'),
 (4, 'Orange', 'O'),
@@ -208,6 +209,69 @@ CREATE TABLE `coupon` (
 
 INSERT INTO `coupon` (`id`, `couponCode`, `cashOff`, `value`, `status`, `creation_date`) VALUES
 (5, 'coupon8.6', 8.6, 0.086, 'A', '2025-03-26 19:49:57');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `customer`
+--
+
+CREATE TABLE `customer` (
+  `id` int(11) NOT NULL,
+  `cusId` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `name_bn` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `compName` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `address` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contactNo` varchar(15) CHARACTER SET utf8mb4 NOT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `totalBuy` float(15,2) NOT NULL DEFAULT 0.00,
+  `totalPaid` float(15,2) NOT NULL DEFAULT 0.00,
+  `totalDue` float(15,2) NOT NULL DEFAULT 0.00,
+  `regDate` timestamp NOT NULL DEFAULT current_timestamp(),
+  `cusImg` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `status` varchar(5) CHARACTER SET utf8mb4 NOT NULL,
+  `updateDate` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cusupdeli`
+--
+
+CREATE TABLE `cusupdeli` (
+  `id` int(11) NOT NULL,
+  `forId` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `userName` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `userName_bn` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `passCode` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `compName` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `address` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contactNo` varchar(15) CHARACTER SET utf8mb4 NOT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `totalBuy` float(15,2) NOT NULL DEFAULT 0.00,
+  `totalPaid` float(15,2) NOT NULL DEFAULT 0.00,
+  `totalDue` float(15,2) NOT NULL DEFAULT 0.00,
+  `regDate` timestamp NOT NULL DEFAULT current_timestamp(),
+  `image` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `status` varchar(5) CHARACTER SET utf8mb4 NOT NULL,
+  `forwarding` varchar(5) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `updateDate` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `cusupdeli`
+--
+
+INSERT INTO `cusupdeli` (`id`, `forId`, `userName`, `userName_bn`, `password`, `passCode`, `compName`, `address`, `contactNo`, `email`, `totalBuy`, `totalPaid`, `totalDue`, `regDate`, `image`, `status`, `forwarding`, `updateDate`) VALUES
+(4, 'usr_11111', 'saifur', 'admin', '3d2172418ce305c7d16d4b05597c6a59', '22222', 'era', 'fgrtfdffg', '01829041688', 'saifur@gmail.com', 0.00, 0.00, 0.00, '2025-03-29 09:26:25', 'usr_67e7f0ac6bee66.21513562.jpg', 'A', 'usr', '2025-03-29 09:26:25'),
+(5, 'sup_11111', 'halim', 'jalim', '', '', 'rea', 'hasjhsakj', '01247514584', 'fshgggs@gmail.com', 0.00, 0.00, 0.00, '2025-03-29 10:22:50', 'sup_67e7c9fa3f99a3.37543873.JPG', 'A', 'sup', '2025-03-29 10:22:50'),
+(6, 'cus_11111', 'nara', 'kara', '', '', 'ddfd', 'hhfhgfhfgh', '54154411545', 'saifur@gmail.com', 0.00, 0.00, 0.00, '2025-03-29 10:23:38', 'cus_67e7ca2aca63a0.33016527.png', 'A', 'cus', '2025-03-29 10:23:38'),
+(8, 'dem_11112', 'nvjh', 'jhgjhg', '', '', 'gfg', 'hhgfhg', '55415674545', 'ggfhg', 0.00, 0.00, 0.00, '2025-03-29 10:24:48', 'dem_67e7ca70b0b915.62240649.png', 'A', 'dem', '2025-03-29 10:24:48'),
+(13, 'usr_11112', 'saifurs', 'admins', 'e10adc3949ba59abbe56e057f20f883e', '123456', 'era', 'fgrtfdffg', '01829041699', 'saifur@gmail.com', 0.00, 0.00, 0.00, '2025-03-29 11:08:28', 'usr_67e7d4ac4d3809.50615938.jpg', 'A', 'usr', '2025-03-29 11:08:28'),
+(14, 'usr_11113', 'sumaiya', 'সুমাইয়া', '1a100d2c0dab19c4430e7d73762b3423', '333333', 'hooland', 'fdgfggffgdfgd', '01810547599', 'sumaiya@gmail.com', 0.00, 0.00, 0.00, '2025-03-29 17:47:39', 'usr_67e83257757ab8.18479606.JPG', 'A', 'usr', '2025-03-29 17:47:39');
 
 -- --------------------------------------------------------
 
@@ -645,34 +709,23 @@ INSERT INTO `productreviews` (`id`, `productId`, `quality`, `price`, `value`, `n
 
 CREATE TABLE `products` (
   `id` int(11) NOT NULL,
-  `brand` int(11) NOT NULL,
-  `category` int(11) NOT NULL,
-  `subCategory` int(11) NOT NULL,
+  `brSuId` int(11) NOT NULL,
+  `catId` int(11) NOT NULL,
+  `subCatId` int(11) NOT NULL,
   `productName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `productName_bn` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `productionProcess` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `whereFrom` int(11) NOT NULL,
   `size` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `color` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `productPrice` int(11) NOT NULL,
-  `priceOffPercent` int(11) NOT NULL,
-  `priceAfterDiscount` int(11) NOT NULL,
-  `cashback` int(11) NOT NULL,
   `description` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `shippingCharge` int(11) DEFAULT NULL,
-  `availability` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `productImage1` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `productImage2` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `productImage3` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `postingDate` timestamp NULL DEFAULT current_timestamp(),
-  `updationDate` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `frontImg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `backImg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `leftImg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `rightImg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(5) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `postingDate` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `products`
---
-
-INSERT INTO `products` (`id`, `brand`, `category`, `subCategory`, `productName`, `productionProcess`, `whereFrom`, `size`, `color`, `productPrice`, `priceOffPercent`, `priceAfterDiscount`, `cashback`, `description`, `shippingCharge`, `availability`, `productImage1`, `productImage2`, `productImage3`, `postingDate`, `updationDate`) VALUES
-(1, 16, 1, 40, 'স্পেশাল চানাচুর', 'SAWDA', 3, '220gm - ২২০গ্রাম', '11', 30, 5, 29, 2, 'dddd', 3, 'in', '1231.jpg', 'chef.jpg', 'dates.png', '2025-03-07 19:17:43', NULL);
 
 -- --------------------------------------------------------
 
@@ -691,16 +744,13 @@ CREATE TABLE `size` (
 --
 
 INSERT INTO `size` (`id`, `sizeName`, `sizeType`) VALUES
-(1, 'All Size - সমস্ত আকার', 'A'),
+(1, 'All Size - সমস্ত আকার', '0'),
 (2, 'Small - ছোট', 'S'),
 (3, 'Medium - মাঝারি', 'M'),
 (4, 'Large - বড়', 'L'),
 (5, 'X-Large - এক্সএল', 'XL'),
 (6, 'XX-Large - ডাবল এক্সএল', 'XXL'),
-(7, 'XXX-Large - ট্রিপল এক্সএল', 'XXXL'),
-(8, '50gm - ৫০গ্রাম', '50'),
-(9, '100g - ১০০গ্রাম', '100'),
-(10, '200g - ২০০গ্রাম', '200');
+(7, 'XXX-Large - ট্রিপল এক্সএল', 'XXXL');
 
 -- --------------------------------------------------------
 
@@ -721,12 +771,52 @@ CREATE TABLE `subcategory` (
 --
 
 INSERT INTO `subcategory` (`id`, `catId`, `subCatName`, `subCatName_en`, `creationDate`) VALUES
-(40, 2, 'শুদ্ধ চানাচুর', 'Pure Chanachur', '2025-03-22 18:37:35'),
-(41, 2, 'শুদ্ধ অ্যাংরি বাইট', 'Pure Angry Byte', '2025-03-22 18:37:39'),
-(42, 2, 'শুদ্ধ কুড়মুড়ে', 'Pure kurmuru', '2025-03-22 18:37:42'),
-(43, 2, 'শুদ্ধ পটেটো চিপস', 'Pure Potato Chips', '2025-03-22 18:37:45'),
-(44, 2, 'শুদ্ধ ঝাল মুড়ি', 'Pure Jhal Muri', '2025-03-22 18:37:48'),
-(45, 2, 'শুদ্ধ গ্রিন চিপস', 'Pure Green Chips', '2025-03-22 18:37:51');
+(46, 3, 'হলুদ', 'Turmeric', '2025-03-29 18:47:53'),
+(47, 3, 'মরিচ', 'Pepper', '2025-03-29 18:48:23'),
+(48, 3, 'ধনিয়া', 'Coriander', '2025-03-29 18:48:46'),
+(49, 3, 'জিরা', 'Cereal', '2025-03-29 18:49:17'),
+(50, 3, 'মসলা', 'Spices', '2025-03-29 18:50:05'),
+(51, 7, 'তেল', 'oil', '2025-03-29 18:51:37'),
+(52, 7, 'সেমাই', 'Vermicelli', '2025-03-29 18:52:17'),
+(53, 7, 'চাল', 'Rice', '2025-03-29 18:53:09'),
+(54, 5, 'চানাচুর', 'Chanachur', '2025-03-29 18:54:30'),
+(55, 5, 'ভাজা', 'Fried', '2025-03-29 18:55:29'),
+(56, 5, 'চিপস', 'Chips', '2025-03-29 18:56:13'),
+(57, 5, 'চাটনী', 'Chutney', '2025-03-29 18:57:05'),
+(58, 5, 'নুডলস', 'Noodles', '2025-03-29 18:57:59'),
+(59, 5, 'মিক্সড', 'Mixed', '2025-03-29 18:58:24'),
+(60, 5, 'ড্রিংক', 'Drink', '2025-03-29 18:59:05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `supplier`
+--
+
+CREATE TABLE `supplier` (
+  `id` int(11) NOT NULL,
+  `supId` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `name_bn` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `compName` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `address` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contactNo` varchar(15) CHARACTER SET utf8mb4 NOT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `totalBuy` float(15,2) NOT NULL DEFAULT 0.00,
+  `totalPaid` float(15,2) NOT NULL DEFAULT 0.00,
+  `totalDue` float(15,2) NOT NULL DEFAULT 0.00,
+  `regDate` timestamp NULL DEFAULT current_timestamp(),
+  `suppImg` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `status` varchar(5) CHARACTER SET utf8mb4 NOT NULL,
+  `updateDate` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `supplier`
+--
+
+INSERT INTO `supplier` (`id`, `supId`, `name`, `name_bn`, `compName`, `address`, `contactNo`, `email`, `totalBuy`, `totalPaid`, `totalDue`, `regDate`, `suppImg`, `status`, `updateDate`) VALUES
+(8, 'SU-11111', 'saifur', 'সাইফুর', 'era', 'rtedff', '01829041699', 'addsds', 0.00, 0.00, 0.00, '2025-03-29 04:29:22', 'user_67e77722044956.84442745.jpg', 'A', '2025-03-29 04:29:22');
 
 -- --------------------------------------------------------
 
@@ -752,7 +842,12 @@ CREATE TABLE `userlog` (
 
 INSERT INTO `userlog` (`id`, `userName`, `userEmail`, `password`, `contactNo`, `userIp`, `logonTime`, `logoutTime`, `status`) VALUES
 (22, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-26 17:45:13', '2025-03-27 04:45:29', 0),
-(23, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-26 17:46:53', '2025-03-27 15:45:37', 0);
+(23, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-26 17:46:53', '2025-03-27 15:45:37', 0),
+(25, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-29 04:04:31', '2025-03-29 16:38:20', 0),
+(26, 'saifur', 'saifur@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', '01829041699', 0x3132372e302e302e3100000000000000, '2025-03-29 05:38:42', '2025-03-29 16:39:42', 0),
+(27, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-29 05:40:01', NULL, 1),
+(28, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-29 07:38:40', '2025-03-29 23:48:26', 0),
+(29, 'sumaiya', 'sumaiya@gmail.com', '1a100d2c0dab19c4430e7d73762b3423', '01810547599', 0x3132372e302e302e3100000000000000, '2025-03-29 12:48:36', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -762,25 +857,21 @@ INSERT INTO `userlog` (`id`, `userName`, `userEmail`, `password`, `contactNo`, `
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `userName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `userName_bn` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `userEmail` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `contactNo` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `billingAddress` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `regDate` timestamp NOT NULL DEFAULT current_timestamp(),
-  `cashBack` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `userImg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name_bn` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `status` varchar(3) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `updationDate` timestamp NOT NULL DEFAULT current_timestamp()
+  `return` varchar(5) COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `userName`, `userName_bn`, `userEmail`, `contactNo`, `password`, `billingAddress`, `regDate`, `cashBack`, `userImg`, `status`, `updationDate`) VALUES
-(2, 'saifur', 'সাইফুর', 'saifur1985bd@yhaoo.com', '01829041699', '$2y$10$1dSkjKpo9w.nZ8AuDbS9u.tHEJ4DCjvjdbw0RinHa1d1Q6bgrGNHO', 'Bardhan', '2025-03-27 09:35:46', NULL, 'user_67e51bf1eadf25.99791800.jpg', 'A', '2025-03-27 09:35:46');
+INSERT INTO `users` (`id`, `name`, `name_bn`, `status`, `return`) VALUES
+(1, 'User', 'ব্যবহারকারী', 'A', 'usr'),
+(2, 'Supplier', 'সরবরাহকারী', 'A', 'sup'),
+(3, 'Customer', 'গ্রাহক', 'A', 'cus'),
+(4, 'Delivery Man', 'ডেলিভারি ম্যান', 'A', 'dem');
 
 -- --------------------------------------------------------
 
@@ -843,6 +934,18 @@ ALTER TABLE `coupon`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `customer`
+--
+ALTER TABLE `customer`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `cusupdeli`
+--
+ALTER TABLE `cusupdeli`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `images`
 --
 ALTER TABLE `images`
@@ -897,6 +1000,12 @@ ALTER TABLE `subcategory`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `supplier`
+--
+ALTER TABLE `supplier`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `userlog`
 --
 ALTER TABLE `userlog`
@@ -940,7 +1049,7 @@ ALTER TABLE `brands`
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `color`
@@ -953,6 +1062,18 @@ ALTER TABLE `color`
 --
 ALTER TABLE `coupon`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `customer`
+--
+ALTER TABLE `customer`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `cusupdeli`
+--
+ALTER TABLE `cusupdeli`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `images`
@@ -988,7 +1109,7 @@ ALTER TABLE `productreviews`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `size`
@@ -1000,19 +1121,25 @@ ALTER TABLE `size`
 -- AUTO_INCREMENT for table `subcategory`
 --
 ALTER TABLE `subcategory`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+
+--
+-- AUTO_INCREMENT for table `supplier`
+--
+ALTER TABLE `supplier`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `userlog`
 --
 ALTER TABLE `userlog`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `wishlist`

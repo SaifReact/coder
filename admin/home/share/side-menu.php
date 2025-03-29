@@ -64,10 +64,10 @@
             </li>
           </ul>
         </li>
-        <li>
+		<li>
           <a href="brands.php">
             <i class="fas fa-shopping-basket"></i>Brands </a>
-        </li>
+        </li>        
         <li class="has-sub">
           <a class="js-arrow" href="#">
             <i class="fas fa-trophy"></i>Categories <span class="arrow">
@@ -119,10 +119,6 @@
             </li>
           </ul>
         </li>
-        <li>
-          <a href="deliveryman.php">
-            <i class="fas fa-shopping-basket"></i>Delivery Man </a>
-        </li>
         <li class="has-sub">
           <a class="js-arrow" href="#">
             <i class="fas fa-copy"></i>Users <span class="arrow">
@@ -130,13 +126,9 @@
             </span>
           </a>
           <ul class="list-unstyled navbar__sub-list js-sub-list">
-            <li>
-              <a href="users.php">
-                <i class="fas fa-sign-in-alt"></i>Manage users </a>
-            </li>
-            <li>
-              <a href="cashpay.php">
-                <i class="fas fa-user"></i>Cashpay to users </a>
+		    <li>
+              <a href="cusupdeli.php">
+                <i class="fas fa-sign-in-alt"></i>Users Manage</a>
             </li>
             <li>
               <a href="logs.php">
