@@ -216,7 +216,7 @@ if (isset($_POST['submit'])) {
 							  </div>
                               
                               <div class="control-group">
-                                 <label class="control-label" for="basicinput">Size / Quantity ( পণ্যের আকার / পরিমাণ )</label>
+                                 <label class="control-label" for="basicinput">Size ( পণ্যের আকার )</label>
                                  <div class="controls">
                                     <input type="text" name="size" id="size" placeholder="Enter Product Size or Quantity" class="span8 tip" required >
                                  </div>

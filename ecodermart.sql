@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 29, 2025 at 08:53 PM
+-- Generation Time: Mar 31, 2025 at 08:09 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.3
 
@@ -168,25 +168,21 @@ CREATE TABLE `color` (
 --
 
 INSERT INTO `color` (`id`, `colorName`, `colorType`) VALUES
-(1, 'All Colors', '0'),
-(2, 'Blue', 'B'),
-(3, 'Green', 'G'),
-(4, 'Orange', 'O'),
-(5, 'Yellow', 'Y'),
-(6, 'Pink', 'P'),
-(7, 'Purple', 'Pu'),
-(8, 'Violet', 'V'),
-(9, 'Turquoise', 'T'),
-(10, 'Gold', 'Go'),
-(11, 'Lime', 'L'),
-(12, 'Aqua', 'A'),
-(13, 'Navy', 'N'),
-(14, 'Cobal', 'C'),
-(15, 'Teal', 'Te'),
-(16, 'Brown', 'B'),
-(17, 'White', 'W'),
-(18, 'Black', 'Bl'),
-(19, 'Red', 'R');
+(1, 'All Colors - সমস্ত রং', '0'),
+(2, 'Blue - নীল', 'B'),
+(3, 'Green - সবুজ', 'G'),
+(4, 'Orange - কমলা', 'O'),
+(5, 'Yellow - হলুদ', 'Y'),
+(6, 'Pink - গোলাপি', 'P'),
+(7, 'Violet - বেগুনি', 'V'),
+(8, 'Turquoise - ফিরোজা', 'T'),
+(9, 'Golden - সোনালী', 'Go'),
+(10, 'Lemon - লেমন', 'L'),
+(11, 'Sky - আকাশী', 'N'),
+(12, 'Brown - বাদামী', 'B'),
+(13, 'White - সাদা', 'W'),
+(14, 'Black - কালো', 'Bl'),
+(15, 'Red - লাল', 'R');
 
 -- --------------------------------------------------------
 
@@ -709,6 +705,7 @@ INSERT INTO `productreviews` (`id`, `productId`, `quality`, `price`, `value`, `n
 
 CREATE TABLE `products` (
   `id` int(11) NOT NULL,
+  `proCode` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `brSuId` int(11) NOT NULL,
   `catId` int(11) NOT NULL,
   `subCatId` int(11) NOT NULL,
@@ -726,6 +723,13 @@ CREATE TABLE `products` (
   `status` varchar(5) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `postingDate` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`id`, `proCode`, `brSuId`, `catId`, `subCatId`, `productName`, `productName_bn`, `productionProcess`, `whereFrom`, `size`, `color`, `description`, `frontImg`, `backImg`, `leftImg`, `rightImg`, `status`, `postingDate`) VALUES
+(1, 'PRO-1475311111', 14, 7, 53, 'dds', 'ddfdf', 'dfdf', 7, '0', '0', '', 'cat_67ead6e524fe90.69830201.JPG', 'cat_67ead6e525e8e9.45065584.jpg', 'cat_67ead6e52609c9.65422597.PNG', 'cat_67ead6e5261949.25034289.PNG', 'A', '2025-03-31 17:54:45');
 
 -- --------------------------------------------------------
 
@@ -847,7 +851,8 @@ INSERT INTO `userlog` (`id`, `userName`, `userEmail`, `password`, `contactNo`, `
 (26, 'saifur', 'saifur@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', '01829041699', 0x3132372e302e302e3100000000000000, '2025-03-29 05:38:42', '2025-03-29 16:39:42', 0),
 (27, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-29 05:40:01', NULL, 1),
 (28, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-29 07:38:40', '2025-03-29 23:48:26', 0),
-(29, 'sumaiya', 'sumaiya@gmail.com', '1a100d2c0dab19c4430e7d73762b3423', '01810547599', 0x3132372e302e302e3100000000000000, '2025-03-29 12:48:36', NULL, 1);
+(29, 'sumaiya', 'sumaiya@gmail.com', '1a100d2c0dab19c4430e7d73762b3423', '01810547599', 0x3132372e302e302e3100000000000000, '2025-03-29 12:48:36', NULL, 1),
+(30, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-31 09:55:31', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -1109,7 +1114,7 @@ ALTER TABLE `productreviews`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `size`
@@ -1133,7 +1138,7 @@ ALTER TABLE `supplier`
 -- AUTO_INCREMENT for table `userlog`
 --
 ALTER TABLE `userlog`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `users`
