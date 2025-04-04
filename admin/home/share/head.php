@@ -31,7 +31,6 @@
     <!-- Main CSS-->
     <link href="css/theme.css" rel="stylesheet" media="all">
 	<link href="css/toastr.min.css" rel="stylesheet" media="all">
-	<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">-->
 	
 	<style>
 		.password-input-container {

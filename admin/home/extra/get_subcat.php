@@ -1,22 +1,18 @@
 <?php
 include('../../include/config.php');
 
-header('Content-Type: text/html; charset=UTF-8'); // Ensure proper encoding
+header('Content-Type: text/html; charset=UTF-8');
 
-// Debugging: Log incoming POST data
-file_put_contents('debug.log', print_r($_POST, true), FILE_APPEND);
-
-// Check if `catId` is set and valid
-if (!isset($_POST["catId"]) || !is_numeric($_POST["catId"])) {
-    echo '<option value="">Invalid request</option>';
+// Input validation
+if (!isset($_POST['catId']) || !is_numeric($_POST['catId'])) {
+    echo '<option value="">Invalid Category</option>';
     exit;
 }
 
-$catId = intval($_POST["catId"]); // Ensure integer value
+$catId = intval($_POST['catId']);
+$selectedSubCatId = isset($_POST['selectedSubCatId']) ? intval($_POST['selectedSubCatId']) : null;
 
-// Debugging: Log `catId`
-file_put_contents('debug.log', "catId received: $catId\n", FILE_APPEND);
-
+// Query subcategories by catId
 $query = mysqli_query($con, "SELECT * FROM subcategory WHERE catId = $catId");
 
 if (!$query) {
@@ -24,16 +20,17 @@ if (!$query) {
     exit;
 }
 
-$options = "";
-while ($row = mysqli_fetch_array($query)) {
-    $selected = (isset($_POST["selectedSubCatId"]) && $_POST["selectedSubCatId"] == $row['id']) ? "selected" : "";
-    $options .= "<option value='" . htmlentities($row['id']) . "' $selected>" 
-                . htmlentities($row['subCatName']) . " - " 
-                . htmlentities($row['subCatName_en']) . "</option>";
+if (mysqli_num_rows($query) == 0) {
+    echo '<option value="">No subcategories found</option>';
+    exit;
 }
 
-// Debugging: Log generated options
-file_put_contents('debug.log', "Generated Options: " . $options . "\n", FILE_APPEND);
-
-echo $options;
+// Build options
+while ($row = mysqli_fetch_assoc($query)) {
+    $selected = ($selectedSubCatId == $row['id']) ? 'selected' : '';
+    echo "<option value='" . htmlentities($row['id']) . "' $selected>" .
+         htmlentities($row['subCatName']) . " - " .
+         htmlentities($row['subCatName_en']) .
+         "</option>";
+}
 ?>

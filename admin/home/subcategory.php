@@ -150,22 +150,20 @@ if (isset($_GET['del']) && $subCatId > 0) {
                               <div class="card-body">
                                  <form id="subCatForm" action="" method="post" enctype="multipart/form-data" novalidate="novalidate">
                                     <div class="row">
-									   <div class="col-12">
+									
+									<div class="col-12">
 											<div class="form-group">
-												<label for="select" class="form-control-label">Category Name ( ক্যাটাগরি নাম )</label>
-												<select name="category" id="category" class="form-control">
-													<?php if (!empty($subCat['catId'])) { ?>
-														<option value="<?php echo htmlentities($subCat['catId']); ?>"> 
-															<?php echo htmlentities($subCat['catName']).' - '.htmlentities($subCat['catName_en']); ?>
-														</option>
-													<?php } else { ?>
-														<option value="0"> Please Select - নির্বাচন করুন</option>
-													<?php } ?>
-
+												<label for="category" class="form-control-label">Category ( ক্যাটাগরি )</label>
+												<select name="category" id="category" class="form-control" onChange="getSubcat(this.value);">
+													<option value="0">Please Select - নির্বাচন করুন</option>
 													<?php 
-													$query = mysqli_query($con, "SELECT * FROM category");
-													while ($row = mysqli_fetch_assoc($query)) {
-														echo "<option value='" . htmlentities($row['id']) . "'>" 
+													$selectedCatId = $subCat['catId'] ?? 0;
+
+													$query = mysqli_query($con, "SELECT * FROM CATEGORY");
+
+													while ($row = mysqli_fetch_array($query)) {
+														$isSelected = ($row['id'] == $selectedCatId) ? 'selected' : '';
+														echo "<option value='" . htmlentities($row['id']) . "' $isSelected>" 
 															 . htmlentities($row['catName']) . " - " 
 															 . htmlentities($row['catName_en']) . "</option>";
 													}

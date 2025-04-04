@@ -66,21 +66,25 @@ function getPrefixNo($con) {
     $catId = trim($_POST['catId'] ?? '');
     $subCatId = trim($_POST['subCatId'] ?? '');
 
-    // Fetch the last supplier number from the database
-    $stmt = $con->prepare("SELECT proCode FROM products ORDER BY id DESC LIMIT 1"); 
+    // Fetch the last product code
+    $stmt = $con->prepare("SELECT proCode FROM products WHERE proCode LIKE ? ORDER BY id DESC LIMIT 1"); 
+    $searchPattern = $prefix . $brSuId . $catId . $subCatId . "%";
+    $stmt->bind_param("s", $searchPattern);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($row = $result->fetch_assoc()) {
-        $lastNumber = str_replace($prefix, '', $row['proCode']); // Remove prefix
-        $numericPart = intval(preg_replace('/\D/', '', $lastNumber)); // Extract numeric part
+        // Extract last numeric part
+        preg_match('/(\d+)$/', $row['proCode'], $matches);
+        $numericPart = isset($matches[1]) ? intval($matches[1]) : 11110;
     } else {
         $numericPart = 11110; // Default starting number
     }
 
-    $stmt->close(); // Close statement after fetching data
+    $stmt->close(); // Close statement
 
-    $newNumber = $numericPart + 1; // Increment the number
+    // Generate new code
+    $newNumber = $numericPart + 1;
     return $prefix . $brSuId . $catId . $subCatId . $newNumber;
 }
 
@@ -144,11 +148,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		}
 
 		// Bind parameters
-		$stmt->bind_param("sssssssssssi", $prefixNo, $brSuId, $catId, $subCatId, $productName, $productName_bn, $productionProcess, $whereFrom, 
-		$size, $color, $description, $newFrontImageName, $newBackImageName, $newLeftImageName, $newRightImageName, $status, $productId);
-
-		// Execute
-		// $stmt->execute();
+		$stmt->bind_param("ssssssssssssssssi", 
+			  $prefixNo, $brSuId, $catId, $subCatId, $productName, $productName_bn,
+			  $productionProcess, $whereFrom, $size, $color, $description,
+			  $newFrontImageName, $newBackImageName, $newLeftImageName, $newRightImageName,
+			  $status, $productId);
 		
 		 // Execute and close
         if ($stmt->execute()) {
@@ -259,47 +263,44 @@ if (isset($_GET['del']) && $productId > 0) {
 <!DOCTYPE html>
 <html lang="en">
    <?php include('share/head.php');?>
-    <script>
-    function getSubcat(catId, selectedSubCatId = null) {
-        if (!catId || catId == 0) {
-            $("#subcategory").html('<option value="">Select Subcategory</option>');
-            return;
-        }
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+		function getSubcat(catId, selectedSubCatId = null) {
+			if (!catId || catId == 0) {
+				$("#subcategory").html('<option value="">Select Subcategory</option>');
+				return;
+			}
 
-        $.ajax({
-            type: "POST",
-            url: "extra/get_subcat.php",
-            data: { catId: catId },
-            dataType: "html",
-            success: function(response) {
-                console.log("Received subcategories:", response); // Debugging
+			$.ajax({
+				type: "POST",
+				url: "extra/get_subcat.php",
+				data: {
+					catId: catId,
+					selectedSubCatId: selectedSubCatId
+				},
+				dataType: "html",
+				success: function(response) {
+					$("#subcategory").html('<option value="">Select Subcategory</option>' + response);
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.error("AJAX Error:", textStatus, errorThrown, jqXHR.responseText);
+					alert("Failed to load subcategories. Try again.");
+				}
+			});
+		}
 
-                $("#subcategory").html('<option value="">Select Subcategory</option>' + response);
-                
-                // If editing, preselect the saved subcategory
-                if (selectedSubCatId) {
-                    $("#subcategory").val(selectedSubCatId);
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.error("AJAX Error:", textStatus, errorThrown, jqXHR.responseText);
-                alert("Failed to load subcategories. Try again.");
-            }
-        });
-    }
+		$(document).ready(function () {
+			// Injected from PHP
+			var catId = "<?php echo isset($product['catId']) ? $product['catId'] : ''; ?>";
+			var subCatId = "<?php echo isset($product['subCatId']) ? $product['subCatId'] : ''; ?>";
 
-    // Call getSubcat on page load if editing a product
-    $(document).ready(function () {
-        var catId = "<?php echo isset($product['catId']) ? htmlentities($product['catId']) : ''; ?>";
-        var subCatId = "<?php echo isset($product['subCatId']) ? htmlentities($product['subCatId']) : ''; ?>";
-
-        console.log("Page Load - catId:", catId, "subCatId:", subCatId); // Debugging
-
-        if (catId) {
-            getSubcat(catId, subCatId);
-        }
-    });
+			if (catId) {
+				getSubcat(catId, subCatId);
+			}
+		});
 	</script>
+
+
 	
    <body class="animsition">
       <div class="page-wrapper">
@@ -355,43 +356,42 @@ if (isset($_GET['del']) && $productId > 0) {
 													Brands / Supplier ( ব্র্যান্ড / সরবরাহকারী )
 												</label>
 												<select name="brSuId" id="brSuId" class="form-control">
-													<?php if (!empty($product['brSuId'])) { ?>
-														<option value="<?php echo htmlentities($product['id']); ?>"> 
-															<?php echo htmlentities($product['brandsname']).' - '.htmlentities($product['brandsnamen']); ?>
-														</option>
-													<?php } else { ?>
-														<option value="0"> Please Select - নির্বাচন করুন</option>
-													<?php } ?>
+													<option value="0">Please Select - নির্বাচন করুন</option>
 													<?php 
-													$query = mysqli_query($con, "SELECT id, brandsName_en AS name, brandsName AS name_bn FROM brands 
-															UNION 
-															SELECT forId AS id, userName AS name, CONCAT(userName_bn, ' (', compName, ')') AS name_bn 
-															FROM cusupdeli 
-															WHERE forwarding = 'sup' AND status = 'A'");
+													$selectedId = $product['brSuId'] ?? 0;
+
+													$query = mysqli_query($con, "
+														SELECT id, brandsName_en AS name, brandsName AS name_bn FROM brands
+														UNION
+														SELECT forId AS id, userName AS name, CONCAT(userName_bn, ' (', compName, ')') AS name_bn 
+														FROM cusupdeli 
+														WHERE forwarding = 'sup' AND status = 'A'
+													");
+
 													while ($row = mysqli_fetch_assoc($query)) {
-														echo "<option value='" . htmlentities($row['id']) . "'>" 
-															 . htmlentities($row['name_bn']) . " - " 
-															 . htmlentities($row['name']) . "</option>";
+														$isSelected = ($row['id'] == $selectedId) ? 'selected' : '';
+														echo "<option value='" . htmlentities($row['id']) . "' $isSelected>" 
+														   . htmlentities($row['name_bn']) . " - " 
+														   . htmlentities($row['name']) . "</option>";
 													}
 													?>
 												</select>
 											</div>
 										</div>
+										
 										<div class="col-6">
 											<div class="form-group">
 												<label for="catId" class="form-control-label">Category ( ক্যাটাগরি )</label>
 												<select name="catId" id="catId" class="form-control" onChange="getSubcat(this.value);">
-													<?php if (!empty($product['catId'])) { ?>
-														<option value="<?php echo htmlentities($product['id']); ?>"> 
-															<?php echo htmlentities($product['catname']). " - " .htmlentities($product['catnamen']); ?>
-														</option>
-													<?php } else { ?>
-														<option value="0"> Please Select - নির্বাচন করুন</option>
-													<?php } ?>
+													<option value="0">Please Select - নির্বাচন করুন</option>
 													<?php 
+													$selectedCatId = $product['catId'] ?? 0;
+
 													$query = mysqli_query($con, "SELECT * FROM CATEGORY");
+
 													while ($row = mysqli_fetch_array($query)) {
-														echo "<option value='" . htmlentities($row['id']) . "'>" 
+														$isSelected = ($row['id'] == $selectedCatId) ? 'selected' : '';
+														echo "<option value='" . htmlentities($row['id']) . "' $isSelected>" 
 															 . htmlentities($row['catName']) . " - " 
 															 . htmlentities($row['catName_en']) . "</option>";
 													}
@@ -399,17 +399,15 @@ if (isset($_GET['del']) && $productId > 0) {
 												</select>
 											</div>
 										</div>
-
+										
 										<div class="col-6">
 											<div class="form-group">
-												<label class="form-control-label" for="subCatId">Sub Category ( সাব ক্যাটাগরি )</label>
+												<label class="form-control-label" for="subCatId">
+													Sub Category ( সাব ক্যাটাগরি )
+												</label>
 												<select name="subCatId" id="subcategory" class="form-control" required>
 													<option value="">Select Subcategory</option>
-													<?php if (!empty($product['subCatId'])) { ?>
-														<option value="<?php echo htmlentities($product['subCatId']); ?>" selected> 
-															<?php echo htmlentities($product['subcatname']) . " - " . htmlentities($product['subcatnamen']); ?>
-														</option>
-													<?php } ?>
+													<!-- Options will be dynamically loaded by JavaScript -->
 												</select>
 											</div>
 										</div>
@@ -444,17 +442,15 @@ if (isset($_GET['del']) && $productId > 0) {
 											<div class="form-group">
 												<label for="whereFrom" class="form-control-label">Where From ( কোথা থেকে )</label>
 												<select name="whereFrom" id="whereFrom" class="form-control">
-													<?php if (!empty($product['whereFrom'])) { ?>
-														<option value="<?php echo htmlentities($product['id']); ?>"> 
-															<?php echo htmlentities($product['bname']).' - '.htmlentities($product['ename']); ?>
-														</option>
-													<?php } else { ?>
-														<option value="0"> Please Select - নির্বাচন করুন</option>
-													<?php } ?>
+													<option value="0">Please Select - নির্বাচন করুন</option>
 													<?php 
+													$selectedDistrictId = $product['whereFrom'] ?? 0;
+
 													$query = mysqli_query($con, "SELECT * FROM DISTRICTS");
+
 													while ($row = mysqli_fetch_array($query)) {
-														echo "<option value='" . htmlentities($row['id']) . "'>" 
+														$isSelected = ($row['id'] == $selectedDistrictId) ? 'selected' : '';
+														echo "<option value='" . htmlentities($row['id']) . "' $isSelected>" 
 															 . htmlentities($row['bn_name']) . " - " 
 															 . htmlentities($row['name']) . "</option>";
 													}
@@ -467,46 +463,42 @@ if (isset($_GET['del']) && $productId > 0) {
 											<div class="form-group">
 												<label for="size" class="form-control-label">Size ( পণ্যের আকার )</label>
 												<select name="size" id="size" class="form-control">
-													<?php if (!empty($product['siztype']) && !empty($product['sizname'])) { ?>
-														<option value="<?php echo htmlentities($product['siztype']); ?>"> 
-															<?php echo htmlentities($product['sizname']); ?>
-														</option>
-													<?php } else { ?>
-														<option value="0"> Please Select - নির্বাচন করুন</option>
-													<?php } ?>
+													<option value="0">Please Select - নির্বাচন করুন</option>
 													<?php 
+													$selectedSize = $product['siztype'] ?? '';
+
 													$query = mysqli_query($con, "SELECT * FROM size");
+
 													while ($row = mysqli_fetch_array($query)) {
-														echo "<option value='" . htmlentities($row['sizeType']) . "'>" 
+														$isSelected = ($row['sizeType'] == $selectedSize) ? 'selected' : '';
+														echo "<option value='" . htmlentities($row['sizeType']) . "' $isSelected>" 
 															 . htmlentities($row['sizeName']) . "</option>";
 													}
 													?>
 												</select>
 											</div>
 										</div>
-										
+
 										<div class="col-6">
 											<div class="form-group">
 												<label for="color" class="form-control-label">Color ( পণ্যের রঙ )</label>
 												<select name="color" id="color" class="form-control">
-													<?php if (!empty($product['cotype']) && !empty($product['coname'])) { ?>
-														<option value="<?php echo htmlentities($product['cotype']); ?>"> 
-															<?php echo htmlentities($product['coname']); ?>
-														</option>
-													<?php } else { ?>
-														<option value="0"> Please Select - নির্বাচন করুন</option>
-													<?php } ?>
+													<option value="0">Please Select - নির্বাচন করুন</option>
 													<?php 
+													$selectedColor = $product['cotype'] ?? '';
+
 													$query = mysqli_query($con, "SELECT * FROM COLOR");
+
 													while ($row = mysqli_fetch_array($query)) {
-														echo "<option value='" . htmlentities($row['colorType']) . "'>" 
+														$isSelected = ($row['colorType'] == $selectedColor) ? 'selected' : '';
+														echo "<option value='" . htmlentities($row['colorType']) . "' $isSelected>" 
 															 . htmlentities($row['colorName']) . "</option>";
 													}
 													?>
 												</select>
 											</div>
 										</div>
-										
+
 										<div class="col-12">
                                           <div class="form-group">
                                              <label for="discription" class="form-control-label">Description ( বর্ণনা )</label>
