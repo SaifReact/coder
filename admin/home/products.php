@@ -15,7 +15,7 @@ $product = ['brSuId' => '', 'catId' => '', 'subCatId'  => '', 'productName'  => 
 
 function getProduct($con, $productId) {
     $stmt = $con->prepare("SELECT products.*, districts.id AS did, districts.name AS ename, districts.bn_name AS bname, category.id AS cid, 
-	category.catName AS catname, subcategory.id AS subcatid, subcategory.subCatName AS subcatname, subcategory.subCatName_en AS subcatnamen, 
+	category.catName AS catname, category.catName_en AS catnamen, subcategory.id AS subcatid, subcategory.subCatName AS subcatname, subcategory.subCatName_en AS subcatnamen, 
 	brands.id AS brandsId, brands.brandsName AS brandsname, brands.brandsName_en AS brandsnamen, color.id as coid, color.colorName as coname, 
 	color.colorType as cotype, size.id as sizid, size.sizeName as sizname, size.sizeType as siztype FROM products 
 	JOIN category ON category.id = products.catId 
@@ -23,7 +23,7 @@ function getProduct($con, $productId) {
 	JOIN brands ON brands.id = products.brSuId 
 	JOIN districts ON districts.id = products.whereFrom 
 	JOIN color ON color.colorType = products.color 
-	JOIN size ON size.sizeType = products.size 
+	JOIN size ON size.sizeType = products.size
 	WHERE products.id = ?");
     $stmt->bind_param("i", $productId);
     $stmt->execute();
@@ -231,35 +231,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	exit();	
 }
 
+if (isset($_GET['del']) && $productId > 0) {
+    $product = getProduct($con, $productId);
+    if ($product) {
+        $stmt = $con->prepare("DELETE FROM products WHERE id = ?");
+        $stmt->bind_param("i", $productId);
+        if ($stmt->execute()) {
+            $productDir = "../product/$productId";
+            if (is_dir($productDir)) {
+                array_map('unlink', glob("$productDir/*"));
+                rmdir($productDir);
+            }
+            $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
+        } else {
+            $_SESSION['delmsg'] = "Database error: Failed to delete Product.";
+        }
+        $stmt->close();
+    } else {
+        $_SESSION['delmsg'] = "Product not found. Cannot delete.";
+    }
+    header('Location: products.php');
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
    <?php include('share/head.php');?>
     <script>
-		function getSubcat(catId) {
-		if (catId == 0) {
-			$("#subcategory").html('<option value="">Select Subcategory</option>');
-			return;
-		}
+    function getSubcat(catId, selectedSubCatId = null) {
+        if (!catId || catId == 0) {
+            $("#subcategory").html('<option value="">Select Subcategory</option>');
+            return;
+        }
 
-		console.log("Sending catId:", catId); // Debugging
+        $.ajax({
+            type: "POST",
+            url: "extra/get_subcat.php",
+            data: { catId: catId },
+            dataType: "html",
+            success: function(response) {
+                console.log("Received subcategories:", response); // Debugging
 
-		$.ajax({
-			type: "POST",
-			url: "extra/get_subcat.php",
-			data: { catId: catId }, // Ensure it's being sent
-			dataType: "html", // Expected response format
-			success: function(response) {
-				console.log("Response received:", response); // Debugging
-				$("#subcategory").html(response);
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				console.error("AJAX Error:", textStatus, errorThrown, jqXHR.responseText);
-				alert("Failed to load subcategories. Try again.");
-			}
-		});
-	}
+                $("#subcategory").html('<option value="">Select Subcategory</option>' + response);
+                
+                // If editing, preselect the saved subcategory
+                if (selectedSubCatId) {
+                    $("#subcategory").val(selectedSubCatId);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX Error:", textStatus, errorThrown, jqXHR.responseText);
+                alert("Failed to load subcategories. Try again.");
+            }
+        });
+    }
+
+    // Call getSubcat on page load if editing a product
+    $(document).ready(function () {
+        var catId = "<?php echo isset($product['catId']) ? htmlentities($product['catId']) : ''; ?>";
+        var subCatId = "<?php echo isset($product['subCatId']) ? htmlentities($product['subCatId']) : ''; ?>";
+
+        console.log("Page Load - catId:", catId, "subCatId:", subCatId); // Debugging
+
+        if (catId) {
+            getSubcat(catId, subCatId);
+        }
+    });
 	</script>
 	
    <body class="animsition">
@@ -316,14 +355,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 													Brands / Supplier ( ব্র্যান্ড / সরবরাহকারী )
 												</label>
 												<select name="brSuId" id="brSuId" class="form-control">
-													<!--<?php if (!empty($product['id'])) { ?>
+													<?php if (!empty($product['brSuId'])) { ?>
 														<option value="<?php echo htmlentities($product['id']); ?>"> 
-															<?php echo htmlentities($product['name']).' - '.htmlentities($product['name_bn']); ?>
+															<?php echo htmlentities($product['brandsname']).' - '.htmlentities($product['brandsnamen']); ?>
 														</option>
 													<?php } else { ?>
 														<option value="0"> Please Select - নির্বাচন করুন</option>
-													<?php } ?>-->
-													<option value="0"> Please Select - নির্বাচন করুন</option>
+													<?php } ?>
 													<?php 
 													$query = mysqli_query($con, "SELECT id, brandsName_en AS name, brandsName AS name_bn FROM brands 
 															UNION 
@@ -343,7 +381,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 											<div class="form-group">
 												<label for="catId" class="form-control-label">Category ( ক্যাটাগরি )</label>
 												<select name="catId" id="catId" class="form-control" onChange="getSubcat(this.value);">
-													<option value="0">Please Select - নির্বাচন করুন</option>
+													<?php if (!empty($product['catId'])) { ?>
+														<option value="<?php echo htmlentities($product['id']); ?>"> 
+															<?php echo htmlentities($product['catname']). " - " .htmlentities($product['catnamen']); ?>
+														</option>
+													<?php } else { ?>
+														<option value="0"> Please Select - নির্বাচন করুন</option>
+													<?php } ?>
 													<?php 
 													$query = mysqli_query($con, "SELECT * FROM CATEGORY");
 													while ($row = mysqli_fetch_array($query)) {
@@ -361,6 +405,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 												<label class="form-control-label" for="subCatId">Sub Category ( সাব ক্যাটাগরি )</label>
 												<select name="subCatId" id="subcategory" class="form-control" required>
 													<option value="">Select Subcategory</option>
+													<?php if (!empty($product['subCatId'])) { ?>
+														<option value="<?php echo htmlentities($product['subCatId']); ?>" selected> 
+															<?php echo htmlentities($product['subcatname']) . " - " . htmlentities($product['subcatnamen']); ?>
+														</option>
+													<?php } ?>
 												</select>
 											</div>
 										</div>
@@ -368,29 +417,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 										<div class="col-6">
 											<div class="form-group">
 												<label class="form-control-label" for="productName">Product Name ( পণ্যের নাম )</label>
-												<input type="text" name="productName"  placeholder="Enter Product Name" class="form-control productName valid" required>
+												<input type="text" name="productName"  placeholder="Enter Product Name" class="form-control productName valid" value="<?php echo htmlentities($product['productName']); ?>" required>
 											</div>
 										</div>
 										
 										<div class="col-6">
 											<div class="form-group">
 												<label class="form-control-label" for="productName_bn">Product Name Bangla ( পণ্যের নাম বাংলায় )</label>
-												<input type="text" name="productName_bn"  placeholder="Enter Product Name Bangla" class="form-control productName_bn valid" required>
+												<input type="text" name="productName_bn"  placeholder="Enter Product Name Bangla" class="form-control productName_bn valid" value="<?php echo htmlentities($product['productName_bn']); ?>" required>
 											</div>
 										</div>
 										
 										<div class="col-6">
 											<div class="form-group">
 												<label class="form-control-label" for="productionProcess">Production Process ( উৎপাদন প্রক্রিয়া )</label>
-												<input type="text" name="productionProcess"  placeholder="Enter Production Process" class="form-control productionProcess valid" required>
+												<input type="text" name="productionProcess"  placeholder="Enter Production Process" class="form-control productionProcess valid" value="<?php echo htmlentities($product['productionProcess']); ?>"required>
 											</div>
 										</div>
+										
+										<!--<?php
+										echo "<pre>";
+										var_dump($product);
+										echo "</pre>"; ?>-->
 
 										<div class="col-6">
 											<div class="form-group">
 												<label for="whereFrom" class="form-control-label">Where From ( কোথা থেকে )</label>
 												<select name="whereFrom" id="whereFrom" class="form-control">
-													<option value="0">Please Select - নির্বাচন করুন</option>
+													<?php if (!empty($product['whereFrom'])) { ?>
+														<option value="<?php echo htmlentities($product['id']); ?>"> 
+															<?php echo htmlentities($product['bname']).' - '.htmlentities($product['ename']); ?>
+														</option>
+													<?php } else { ?>
+														<option value="0"> Please Select - নির্বাচন করুন</option>
+													<?php } ?>
 													<?php 
 													$query = mysqli_query($con, "SELECT * FROM DISTRICTS");
 													while ($row = mysqli_fetch_array($query)) {
@@ -402,14 +462,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 												</select>
 											</div>
 										</div>
-										
+
 										<div class="col-6">
 											<div class="form-group">
 												<label for="size" class="form-control-label">Size ( পণ্যের আকার )</label>
 												<select name="size" id="size" class="form-control">
-													<option value="0">Please Select - নির্বাচন করুন</option>
+													<?php if (!empty($product['siztype']) && !empty($product['sizname'])) { ?>
+														<option value="<?php echo htmlentities($product['siztype']); ?>"> 
+															<?php echo htmlentities($product['sizname']); ?>
+														</option>
+													<?php } else { ?>
+														<option value="0"> Please Select - নির্বাচন করুন</option>
+													<?php } ?>
 													<?php 
-													$query = mysqli_query($con, "SELECT * FROM SIZE");
+													$query = mysqli_query($con, "SELECT * FROM size");
 													while ($row = mysqli_fetch_array($query)) {
 														echo "<option value='" . htmlentities($row['sizeType']) . "'>" 
 															 . htmlentities($row['sizeName']) . "</option>";
@@ -423,7 +489,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 											<div class="form-group">
 												<label for="color" class="form-control-label">Color ( পণ্যের রঙ )</label>
 												<select name="color" id="color" class="form-control">
-													<option value="0">Please Select - নির্বাচন করুন</option>
+													<?php if (!empty($product['cotype']) && !empty($product['coname'])) { ?>
+														<option value="<?php echo htmlentities($product['cotype']); ?>"> 
+															<?php echo htmlentities($product['coname']); ?>
+														</option>
+													<?php } else { ?>
+														<option value="0"> Please Select - নির্বাচন করুন</option>
+													<?php } ?>
 													<?php 
 													$query = mysqli_query($con, "SELECT * FROM COLOR");
 													while ($row = mysqli_fetch_array($query)) {
@@ -438,9 +510,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 										<div class="col-12">
                                           <div class="form-group">
                                              <label for="discription" class="form-control-label">Description ( বর্ণনা )</label>
-											 <textarea name="discription" id="discription" rows="5" placeholder="Content..." class="form-control"></textarea>
+											 <textarea name="discription" id="discription" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($product['discription'] ?? ''); ?></textarea>
                                           </div>
                                        </div>
+									   
+									   
+                                        <?php if ($productId && $product['frontImg'] && $product['backImg']) { ?>
+										<div class="col-6">
+											<div class="form-group">
+											<label for="logo" class="control-label mb-1">Current Front Image ( বর্তমান সামনের ছবি )</label>
+												<div class="controls">
+													<img src="../product/<?php echo htmlentities($productId); ?>/<?php echo htmlentities($product['frontImg']); ?>" width="100" height="100">
+												</div>
+											</div>
+										</div>
+										<div class="col-6">
+											<div class="form-group">
+											<label for="logo" class="control-label mb-1">Current Back Image ( বর্তমান পিছনের ছবি )</label>
+												<div class="controls">
+													<img src="../product/<?php echo htmlentities($productId); ?>/<?php echo htmlentities($product['backImg']); ?>" width="100" height="100">
+												</div>
+											</div>
+										</div>
+										<?php } ?>
 									   
 									   <div class="col-6">
                                           <div class="form-group">
@@ -460,9 +552,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                           </div>
                                        </div>
 									   
+									   <?php if ($productId && $product['leftImg'] && $product['rightImg']) { ?>
+										<div class="col-6">
+											<div class="form-group">
+											<label for="logo" class="control-label mb-1">Current Front Image ( বর্তমান বামের ছবি )</label>
+												<div class="controls">
+													<img src="../product/<?php echo htmlentities($productId); ?>/<?php echo htmlentities($product['leftImg']); ?>" width="100" height="100">
+												</div>
+											</div>
+										</div>
+										<div class="col-6">
+											<div class="form-group">
+											<label for="logo" class="control-label mb-1">Current Back Image ( বর্তমান ডানের ছবি )</label>
+												<div class="controls">
+													<img src="../product/<?php echo htmlentities($productId); ?>/<?php echo htmlentities($product['rightImg']); ?>" width="100" height="100">
+												</div>
+											</div>
+										</div>
+										<?php } ?>
+									   
 									   <div class="col-6">
                                           <div class="form-group">
-                                             <label for="leftImg" class="form-control-label">Left Image ( বাম ছবি )</label>
+                                             <label for="leftImg" class="form-control-label">Left Image ( বামের ছবি )</label>
 											 <br/>
                                              <input type="file" name="leftImg" multiple onchange="previewImages(event, 'leftPreviewContainer')" />
 											 <div id="leftPreviewContainer" style="display: flex; flex-wrap: wrap;"></div>	
@@ -470,7 +581,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        </div>
                                        <div class="col-6">
                                           <div class="form-group">
-                                             <label for="rightImg" class="form-control-label">Right Image ( ডান ছবি )</label>
+                                             <label for="rightImg" class="form-control-label">Right Image ( ডানের ছবি )</label>
 											 <br/>
                                              <input type="file" name="rightImg" multiple onchange="previewImages(event, 'rightPreviewContainer')" />
 											 <div id="rightPreviewContainer" style="display: flex; flex-wrap: wrap;"></div>	
@@ -479,6 +590,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 									</div>
 								</form>
                               </div>
+                           </div>
+                        </div>
+                     </div>
+					 <div class="row m-t-30">
+                        <div class="col-md-12">
+                           <!-- DATA TABLE-->
+                           <div class="table-responsive m-b-40">
+                              <table class="table table-borderless table-data3">
+                                 <thead>
+                                        <tr>
+                                            <th>#</th>
+											<th>ID<br>( আইডি )</th>
+                                            <th>Name<br>( নাম )</th>
+											<th>Brands Name<br>( ব্র্যান্ডস নাম )</th>
+											<th>Category Name<br>( ক্যাটাগরি নাম )</th>
+											<th>Sub Category Name <br>( সাব ক্যাটাগরি নাম )</th>
+											<th>Front Image <br>( সামনের ছবি )</th>
+											<th>Back Image <br>( পিছনের ছবি )</th>
+											<th>Left Image <br>( বামের ছবি )</th>
+											<th>Right Image <br>( ডানের ছবি )</th>
+											<th>Status <br>( অবস্থা )</th>
+                                            <th>Creation Date <br>( সংরক্ষণ তারিখ )</th>
+                                            <th>Action <br>( কর্ম পদ্ধতি )</th>
+                                        </tr>
+                                    </thead>
+                                 <tbody>
+								 <?php 
+                                        $query = $con->query("SELECT products.*, districts.id AS did, districts.name AS ename, districts.bn_name AS bname, category.id AS cid, 
+															category.catName AS catname, subcategory.id AS subcatid, subcategory.subCatName AS subcatname, subcategory.subCatName_en AS subcatnamen, 
+															brands.id AS brandsId, brands.brandsName AS brandsname, brands.brandsName_en AS brandsnamen, color.id as coid, color.colorName as coname, 
+															color.colorType as cotype, size.id as sizid, size.sizeName as sizname, size.sizeType as siztype FROM products 
+															JOIN category ON category.id = products.catId 
+															JOIN subcategory ON subcategory.id = products.subCatId 
+															JOIN brands ON brands.id = products.brSuId 
+															JOIN districts ON districts.id = products.whereFrom 
+															JOIN color ON color.colorType = products.color 
+															JOIN size ON size.sizeType = products.size ORDER BY id DESC");
+                                        $cnt = 1;
+                                        while ($row = $query->fetch_assoc()) { 
+                                        ?>
+                                    <tr>
+                                       <td><?php echo $cnt++; ?></td>
+									   <td><?php echo htmlentities($row['proCode']); ?></td>
+									   <td><?php echo htmlentities($row['productName']).' - '.htmlentities($row['productName_bn']); ?></td>
+									   <td><?php echo htmlentities($row['brandsname']); ?></td>
+									   <td><?php echo htmlentities($row['catname']); ?></td>
+									   <td><?php echo htmlentities($row['subcatname']); ?></td>
+									   <td><img src="../product/<?php echo $row['id']; ?>/<?php echo htmlentities($row['frontImg']); ?>" width="100" height="100"></td>
+									   <td><img src="../product/<?php echo $row['id']; ?>/<?php echo htmlentities($row['backImg']); ?>" width="100" height="100"></td>
+									   <td><img src="../product/<?php echo $row['id']; ?>/<?php echo htmlentities($row['leftImg']); ?>" width="100" height="100"></td>
+									   <td><img src="../product/<?php echo $row['id']; ?>/<?php echo htmlentities($row['rightImg']); ?>" width="100" height="100"></td>
+									   <td><?php echo htmlentities($row['status'] == 'A') ? 'Active (সক্রিয়)' : 'Inactive (নিষ্ক্রিয়)'; ?></td>									   
+									   <td><?php echo htmlentities($row['postingDate']); ?></td>
+									   <td>
+                                        <div class="table-data-feature">
+											<button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
+												<a href="products.php?id=<?php echo $row['id']; ?>" style="text-decoration: none; display: flex; align-items: center;">
+													<i class="zmdi zmdi-edit" style="color:#008000"></i>
+												</a>
+											</button>
+											<button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
+												<a href="products.php?id=<?php echo $row['id']; ?>&del=delete" onClick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
+													<i class="zmdi zmdi-delete" style="color:#FF0000"></i>
+												</a>
+											</button>
+                                        </div>
+                                       </td>
+                                    </tr>
+                                   <?php } ?>
+                                 </tbody>
+                              </table>
                            </div>
                         </div>
                      </div>

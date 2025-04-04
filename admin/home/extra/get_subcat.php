@@ -24,16 +24,16 @@ if (!$query) {
     exit;
 }
 
-if (mysqli_num_rows($query) > 0) {
-    echo '<option value="">Select Subcategory</option>';
-    while ($row = mysqli_fetch_array($query)) {
-        echo "<option value='" . htmlentities($row['id']) . "'>" 
-															 . htmlentities($row['subCatName']) . " - " 
-															 . htmlentities($row['subCatName_en']) . "</option>";
-    }
-} else {
-    echo '<option value="">No subcategory found</option>';
+$options = "";
+while ($row = mysqli_fetch_array($query)) {
+    $selected = (isset($_POST["selectedSubCatId"]) && $_POST["selectedSubCatId"] == $row['id']) ? "selected" : "";
+    $options .= "<option value='" . htmlentities($row['id']) . "' $selected>" 
+                . htmlentities($row['subCatName']) . " - " 
+                . htmlentities($row['subCatName_en']) . "</option>";
 }
+
+// Debugging: Log generated options
+file_put_contents('debug.log', "Generated Options: " . $options . "\n", FILE_APPEND);
+
+echo $options;
 ?>
-
-

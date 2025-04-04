@@ -48,3 +48,92 @@ Array
     [catId] => 7
 )
 catId received: 7
+Array
+(
+    [catId] => 3
+)
+catId received: 3
+Array
+(
+    [catId] => 2
+)
+catId received: 2
+Array
+(
+    [catId] => 3
+)
+catId received: 3
+Array
+(
+    [catId] => 5
+)
+catId received: 5
+Array
+(
+    [catId] => 7
+)
+catId received: 7
+Array
+(
+    [catId] => 2
+)
+catId received: 2
+Array
+(
+    [catId] => 2
+)
+catId received: 2
+Array
+(
+    [catId] => 3
+)
+catId received: 3
+Array
+(
+    [catId] => 2
+)
+catId received: 2
+Array
+(
+    [catId] => 5
+)
+catId received: 5
+Array
+(
+    [catId] => 2
+)
+catId received: 2
+Array
+(
+    [catId] => 5
+)
+catId received: 5
+Array
+(
+    [catId] => 7
+)
+catId received: 7
+Array
+(
+    [catId] => 5
+)
+catId received: 5
+Generated Options: <option value='54' >চানাচুর - Chanachur</option><option value='55' >ভাজা - Fried</option><option value='56' >চিপস - Chips</option><option value='57' >চাটনী - Chutney</option><option value='58' >নুডলস - Noodles</option><option value='59' >মিক্সড - Mixed</option><option value='60' >ড্রিংক - Drink</option>
+Array
+(
+    [catId] => 3
+)
+catId received: 3
+Generated Options: <option value='46' >হলুদ - Turmeric</option><option value='47' >মরিচ - Pepper</option><option value='48' >ধনিয়া - Coriander</option><option value='49' >জিরা - Cereal</option><option value='50' >মসলা - Spices</option>
+Array
+(
+    [catId] => 2
+)
+catId received: 2
+Generated Options: 
+Array
+(
+    [catId] => 3
+)
+catId received: 3
+Generated Options: <option value='46' >হলুদ - Turmeric</option><option value='47' >মরিচ - Pepper</option><option value='48' >ধনিয়া - Coriander</option><option value='49' >জিরা - Cereal</option><option value='50' >মসলা - Spices</option>

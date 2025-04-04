@@ -97,8 +97,12 @@
                 <i class="fas fa-table"></i>Add Product </a>
             </li>
             <li>
-              <a href="form.html">
-                <i class="far fa-check-square"></i>Manage Products </a>
+              <a href="stock.php">
+                <i class="far fa-check-square"></i>Add Stock </a>
+            </li>
+			<li>
+              <a href="stock_return.php">
+                <i class="far fa-check-square"></i>Stock Return </a>
             </li>
           </ul>
         </li>

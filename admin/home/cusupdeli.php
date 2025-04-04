@@ -509,7 +509,6 @@ if (isset($_GET['del']) && $cusupdeId > 0) {
                                  </tbody>
                               </table>
                            </div>
-                           <!-- END DATA TABLE-->
                         </div>
                      </div>
                   </div>
