@@ -31,8 +31,8 @@ if (mysqli_num_rows($query) == 0) {
 // Build options
 while ($row = mysqli_fetch_assoc($query)) {
     echo "<option value='" . htmlentities($row['id']) . "'>" .
-         htmlentities($row['productName']) . " - " .
-         htmlentities($row['productName_en']) .
+         htmlentities($row['productName_bn']) . " - " .
+         htmlentities($row['productName']) .
          "</option>";
 }
 ?>
