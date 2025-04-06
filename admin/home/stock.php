@@ -12,21 +12,49 @@ if (empty($_SESSION['alogin'])) {
 $stockId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $stock = ['brSuId' => '', 'catId' => '', 'subCatId'  => '']; // Ensure this contains your DB connection
 
-// Ensure no output before PHP tags
-ob_clean();  // Clean (erase) the output buffer if using output buffering
-session_write_close();
-header('Content-Type: application/json'); // Always set the content type header for JSON
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['data'])) {
+    $input = json_decode($_POST['data'], true);
 
-// Check if 'data' is set in POST request before accessing
-if (isset($_POST['data'])) {
-    $data = $_POST['data'];
-} else {
-    // Handle case where data is not set (return error message)
-    $data = ['status' => 'error', 'message' => 'No data received'];
+    $brSuId = intval($input['brSuId']);
+    $catId = intval($input['catId']);
+    $subCatId = intval($input['subCatId']);
+    $allData = $input['allData'];
+
+    $errors = [];
+    foreach ($allData as $row) {
+        $proId = mysqli_real_escape_string($con, $row['proId']);
+        $pack = mysqli_real_escape_string($con, $row['packQuan']);
+        $quantity = intval($row['quantity']);
+        $packSize = mysqli_real_escape_string($con, $row['packSize']);
+        $buyingPri = floatval($row['buyRate']);
+        $sellingPri = floatval($row['sellRate']);
+        $couponCode = mysqli_real_escape_string($con, $row['couponRate']);
+        $startDate = mysqli_real_escape_string($con, $row['startDate']);
+        $endDate = mysqli_real_escape_string($con, $row['endDate']);
+        $afterDisPri = floatval($row['afterDis']);
+
+        $sql = "INSERT INTO stock 
+            (brSuId, catId, subCatId, proId, proCode, quantity, pack, buyingPri, sellingPri, couponCode, startDate, endDate, afterDisPri, status) 
+            VALUES 
+            ('$brSuId', '$catId', '$subCatId', '$proId', '', '$quantity', '$pack', '$buyingPri', '$sellingPri', '$couponCode', '$startDate', '$endDate', '$afterDisPri', 'A')";
+
+        if (!mysqli_query($con, $sql)) {
+            $errors[] = mysqli_error($con);
+        }
+    }
+
+    if (empty($errors)) {
+		$_SESSION['msg'] = 'Stock data inserted successfully!';
+        echo json_encode(['status' => 'success', 'message' => 'Stock data inserted successfully!']);
+    } else {
+		$_SESSION['delmsg'] = 'Some insertions failed.';
+        echo json_encode(['status' => 'error', 'message' => 'Some insertions failed.', 'details' => $errors]);
+    }
+
+    exit;
 }
-
-echo json_encode($data); // Your actual JSON output
 ?>
+
 
 
   
@@ -61,68 +89,15 @@ echo json_encode($data); // Your actual JSON output
 		});
 	}
 
-	function getProducts(brSuId, catId, subCatId) {
-		if (!brSuId || !catId || !subCatId || brSuId === "0" || catId === "0" || subCatId === "0") {
-			$("#products").html('<option value="">Select Product</option>');
-			return;
-		}
-
-		$.ajax({
-			type: "POST",
-			url: "extra/get_products.php",
-			data: { brSuId: brSuId, catId: catId, subCatId: subCatId },
-			dataType: "html",
-			success: function (response) {
-				$("#products").html('<option value="">Select - নির্বাচন করুন</option>' + response);
-			},
-			error: function () {
-				alert("Failed to load products.");
-			}
-		});
-	}
-
 	$(document).ready(function () {
 		// Pre-selected values for update
-		var brSuId = "<?php echo $stock['brSuId'] ?? ''; ?>";
 		var catId = "<?php echo $stock['catId'] ?? ''; ?>";
 		var subCatId = "<?php echo $stock['subCatId'] ?? ''; ?>";
 
 		// Load subcategories on load if category is set
 		if (catId) {
-			getSubcat(catId, subCatId, function () {
-				if (brSuId && catId && subCatId) {
-					getProducts(brSuId, catId, subCatId);
-				}
-			});
+			getSubcat(catId, subCatId);
 		}
-
-		// Trigger subcategory load when category is changed
-		$("#catId").on("change", function () {
-			const newCatId = $(this).val();
-			getSubcat(newCatId, null, function () {
-				const brSuId = $("#brSuId").val();
-				const subCatId = $("#subcategory").val();
-				if (brSuId && newCatId && subCatId) {
-					getProducts(brSuId, newCatId, subCatId);
-				}
-			});
-		});
-
-		// Trigger product load when subcategory changes
-		$("#subcategory").on("change", function () {
-			const brSuId = $("#brSuId").val();
-			const catId = $("#catId").val();
-			const subCatId = $(this).val();
-			getProducts(brSuId, catId, subCatId);
-		});
-
-		// Trigger product load when brand/supplier changes
-		$("#brSuId").on("change", function () {
-			const brSuId = $(this).val();
-			const catId = $("#catId").val();
-			const subCatId = $("#subcategory").val();
-			getProducts(brSuId, catId, subCatId);
-		});
 	});
 </script>
 
@@ -266,9 +241,9 @@ echo json_encode($data); // Your actual JSON output
                                        <td> 1 </td>
                                        <td>
                                         <select id="products" name="proId[]" class="form-control products-dropdown" required>
-                                            <option value="">Select Products</option>
-                                                <!-- Options will be dynamically loaded by JavaScript -->
-                                        </select>
+											<option value="">Select Product</option>
+										</select>
+
                                        </td>
 									   <td>
                                           <input type="text" name="packQuan[]"  class="form-control"/>
@@ -310,104 +285,126 @@ echo json_encode($data); // Your actual JSON output
       <?php include('share/js.php');?>
 
 		<script>
-		$(document).ready(function () {
-			let rowIdx = 1;
+			$(document).ready(function () {
+				let rowIdx = 1;
 
-			// Add new row
-			$('#addrow').on('click', function () {
-				var newRow = $('#myTable tbody tr:first').clone();
+				// Function to get products and populate a specific dropdown
+				function loadProductsForRow(dropdown, brSuId, catId, subCatId, selectedProductId = null) {
+					if (!brSuId || !catId || !subCatId) return;
 
-				// Clear inputs
-				newRow.find('input, select').each(function () {
-					$(this).val('');
+					$.ajax({
+						type: "POST",
+						url: "extra/get_products.php",
+						data: { brSuId: brSuId, catId: catId, subCatId: subCatId },
+						dataType: "html",
+						success: function (response) {
+							dropdown.html('<option value="">Select - নির্বাচন করুন</option>' + response);
+							if (selectedProductId) {
+								dropdown.val(selectedProductId);
+							}
+						},
+						error: function () {
+							alert("Failed to load products.");
+						}
+					});
+				}
+
+				// Add new row
+				$('#addrow').on('click', function () {
+					let brSuId = $('#brSuId').val();
+					let catId = $('#catId').val();
+					let subCatId = $('#subcategory').val();
+
+					if (!brSuId || !catId || !subCatId || brSuId === "0" || catId === "0" || subCatId === "0") {
+						alert("Please select Brand/Supplier, Category and Subcategory first.");
+						return;
+					}
+
+					let newRow = $('#myTable tbody tr:first').clone();
+
+					newRow.find('input, select').val('');
+					rowIdx++;
+					newRow.find('td:first').text(rowIdx);
+					newRow.find('td:last').html('<a class="deleteRow btn btn-sm btn-danger text-white" style="cursor:pointer;">×</a>');
+
+					// Append and then load product list in the new row
+					$('#myTable tbody').append(newRow);
+					let newDropdown = newRow.find('.products-dropdown');
+					loadProductsForRow(newDropdown, brSuId, catId, subCatId);
 				});
 
-				rowIdx++;
+				// Delete row
+				$('#myTable').on('click', '.deleteRow', function () {
+					$(this).closest('tr').remove();
 
-				// Update row number
-				newRow.find('td:first').text(rowIdx);
-
-				// Add delete button
-				newRow.find('td:last').html('<a class="deleteRow btn btn-sm btn-danger text-white" style="cursor:pointer;">×</a>');
-
-				$('#myTable tbody').append(newRow);
-			});
-
-			// Delete row
-			$('#myTable').on('click', '.deleteRow', function () {
-				$(this).closest('tr').remove();
-
-				// Re-index row numbers
-				$('#myTable tbody tr').each(function (index) {
-					$(this).find('td:first').text(index + 1);
+					// Re-index
+					$('#myTable tbody tr').each(function (index) {
+						$(this).find('td:first').text(index + 1);
+					});
+					rowIdx = $('#myTable tbody tr').length;
 				});
 
-				rowIdx = $('#myTable tbody tr').length;
+				// On select changes, reload all products in each row
+				$('#brSuId, #catId, #subcategory').on('change', function () {
+					let brSuId = $('#brSuId').val();
+					let catId = $('#catId').val();
+					let subCatId = $('#subcategory').val();
+
+					$('.products-dropdown').each(function () {
+						loadProductsForRow($(this), brSuId, catId, subCatId);
+					});
+				});
+
+				// Submit data
+				$('#submitStock').on('click', function () {
+					let allData = [];
+					$('#myTable tbody tr').each(function () {
+						let row = $(this);
+						allData.push({
+							proId: row.find('select[name="proId[]"]').val(),
+							packQuan: row.find('input[name="packQuan[]"]').val(),
+							quantity: row.find('input[name="quantity[]"]').val(),
+							packSize: row.find('select[name="packSize[]"]').val(),
+							buyRate: row.find('input[name="buyRate[]"]').val(),
+							sellRate: row.find('input[name="sellRate[]"]').val(),
+							couponRate: row.find('input[name="couponRate[]"]').val(),
+							startDate: row.find('input[name="startDate[]"]').val(),
+							endDate: row.find('input[name="endDate[]"]').val(),
+							afterDis: row.find('input[name="afterDis[]"]').val()
+						});
+					});
+
+					let data = {
+						brSuId: $("#brSuId").val(),
+						catId: $("#catId").val(),
+						subCatId: $("#subcategory").val(),
+						allData: allData
+					};
+
+					$.ajax({
+						type: "POST",
+						url: "stock.php",
+						data: { data: JSON.stringify(data) },
+						success: function (response) {
+							try {
+								let jsonResponse = JSON.parse(response);
+								alert(jsonResponse.message);
+								if (jsonResponse.status === "success") {
+									location.reload(); // Or redirect
+								}
+							} catch (e) {
+								alert("Invalid response from server");
+								console.error(e, response);
+							}
+						},
+						error: function (xhr, status, error) {
+							alert("Error: " + error);
+						}
+					});
+				});
 			});
+			</script>
 
-			// Submit data
-			$('#submitStock').addEventListener('click', function () {
-    // Collecting the data from the table rows
-    let allData = [];
-    $('#myTable tbody tr').each(function () {
-        let rowData = {
-            proId: $(this).find('select[name="proId[]"]').val(),
-            packQuan: $(this).find('input[name="packQuan[]"]').val(),
-            quantity: $(this).find('input[name="quantity[]"]').val(),
-            packSize: $(this).find('select[name="packSize[]"]').val(),
-            buyRate: $(this).find('input[name="buyRate[]"]').val(),
-            sellRate: $(this).find('input[name="sellRate[]"]').val(),
-            couponRate: $(this).find('input[name="couponRate[]"]').val(),
-            startDate: $(this).find('input[name="startDate[]"]').val(),
-            endDate: $(this).find('input[name="endDate[]"]').val(),
-            afterDis: $(this).find('input[name="afterDis[]"]').val()
-        };
-        allData.push(rowData);
-    });
-
-    // Prepare the data to be sent to the server
-    let data = {
-        brSuId: $("#brSuId").val(),
-        catId: $("#catId").val(),
-        subCatId: $("#subcategory").val(),
-        allData: allData
-    };
-	
-	console.log('data', data);
-
-    // Make the AJAX request
-		   $.ajax({
-    type: "POST",
-    url: "stock.php",
-    data: data,
-    success: function(response) {
-        // Check the response directly in the console for debugging
-        console.log("Raw response:", response);
-        
-        try {
-            let jsonResponse = JSON.parse(response); // Parsing JSON response
-            if (jsonResponse.status === 'success') {
-                alert(jsonResponse.message);
-            } else {
-                alert(jsonResponse.message);
-            }
-        } catch (error) {
-            console.error("JSON Parse Error: ", error);  // Log error details
-            alert("Error parsing JSON response.");
-        }
-    },
-    error: function(xhr, status, error) {
-        alert("Error during the request: " + error);
-        console.log(error);  // Log any errors that occur during the AJAX request
-    }
-});
-
-});
-
-
-		});
-		</script>
-	  
       <script>
          $(document).ready(function () {
          	<?php if (!empty($_SESSION['msg'])) { ?>
