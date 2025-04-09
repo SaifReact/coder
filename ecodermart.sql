@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.0.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 04, 2025 at 06:26 AM
--- Server version: 10.4.27-MariaDB
--- PHP Version: 7.4.33
+-- Generation Time: Apr 09, 2025 at 07:42 PM
+-- Server version: 10.4.11-MariaDB
+-- PHP Version: 7.4.3
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -34,7 +35,7 @@ CREATE TABLE `admin` (
   `creationDate` timestamp NOT NULL DEFAULT current_timestamp(),
   `updationDate` varchar(255) NOT NULL,
   `contactNo` int(15) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `admin`
@@ -53,7 +54,7 @@ CREATE TABLE `banner` (
   `id` int(11) NOT NULL,
   `bannerName` varchar(100) NOT NULL,
   `bannerType` varchar(10) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `banner`
@@ -75,22 +76,22 @@ INSERT INTO `banner` (`id`, `bannerName`, `bannerType`) VALUES
 
 CREATE TABLE `basic` (
   `id` int(11) NOT NULL,
-  `compName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `compName_en` varchar(50) DEFAULT NULL,
-  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `phone` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `office_phone` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `logo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `currency` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `facebook` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `twitter` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `linkedin` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `delivery_method` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `messanger_group` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `whatapps_group` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `open_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `close_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `compName` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `compName_en` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `address` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `phone` varchar(25) CHARACTER SET utf8mb4 NOT NULL,
+  `office_phone` varchar(25) CHARACTER SET utf8mb4 NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `logo` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `currency` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `facebook` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `twitter` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `linkedin` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `delivery_method` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `messanger_group` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
+  `whatapps_group` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
+  `open_time` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `close_time` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
   `updationDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -109,9 +110,9 @@ INSERT INTO `basic` (`id`, `compName`, `compName_en`, `address`, `phone`, `offic
 
 CREATE TABLE `brands` (
   `id` int(11) NOT NULL,
-  `brandsName` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `brandsName_en` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `brandsImage` varchar(255) NOT NULL,
+  `brandsName` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `brandsName_en` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `brandsImage` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `postingDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -133,9 +134,9 @@ INSERT INTO `brands` (`id`, `brandsName`, `brandsName_en`, `brandsImage`, `posti
 
 CREATE TABLE `category` (
   `id` int(11) NOT NULL,
-  `catName` varchar(255) DEFAULT NULL,
-  `catName_en` varchar(255) DEFAULT NULL,
-  `catImage` varchar(256) DEFAULT NULL,
+  `catName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `catName_en` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `catImage` varchar(256) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `creationDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -158,8 +159,8 @@ INSERT INTO `category` (`id`, `catName`, `catName_en`, `catImage`, `creationDate
 
 CREATE TABLE `color` (
   `id` int(11) NOT NULL,
-  `colorName` varchar(255) NOT NULL,
-  `colorType` varchar(10) NOT NULL
+  `colorName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `colorType` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -196,7 +197,7 @@ CREATE TABLE `coupon` (
   `value` float DEFAULT NULL,
   `status` varchar(3) NOT NULL,
   `creation_date` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `coupon`
@@ -213,19 +214,19 @@ INSERT INTO `coupon` (`id`, `couponCode`, `cashOff`, `value`, `status`, `creatio
 
 CREATE TABLE `customer` (
   `id` int(11) NOT NULL,
-  `cusId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `name_bn` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `compName` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `address` text DEFAULT NULL,
-  `contactNo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `cusId` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `name_bn` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `compName` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `address` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contactNo` varchar(15) CHARACTER SET utf8mb4 NOT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   `totalBuy` float(15,2) NOT NULL DEFAULT 0.00,
   `totalPaid` float(15,2) NOT NULL DEFAULT 0.00,
   `totalDue` float(15,2) NOT NULL DEFAULT 0.00,
   `regDate` timestamp NOT NULL DEFAULT current_timestamp(),
-  `cusImg` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `status` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `cusImg` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `status` varchar(5) CHARACTER SET utf8mb4 NOT NULL,
   `updateDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -237,22 +238,22 @@ CREATE TABLE `customer` (
 
 CREATE TABLE `cusupdeli` (
   `id` int(11) NOT NULL,
-  `forId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `userName` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `userName_bn` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `passCode` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `compName` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `address` text DEFAULT NULL,
-  `contactNo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `forId` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `userName` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `userName_bn` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `passCode` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `compName` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `address` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contactNo` varchar(15) CHARACTER SET utf8mb4 NOT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   `totalBuy` float(15,2) NOT NULL DEFAULT 0.00,
   `totalPaid` float(15,2) NOT NULL DEFAULT 0.00,
   `totalDue` float(15,2) NOT NULL DEFAULT 0.00,
   `regDate` timestamp NOT NULL DEFAULT current_timestamp(),
-  `image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `status` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `forwarding` varchar(5) DEFAULT NULL,
+  `image` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `status` varchar(5) CHARACTER SET utf8mb4 NOT NULL,
+  `forwarding` varchar(5) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `updateDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -282,7 +283,7 @@ CREATE TABLE `districts` (
   `lat` varchar(15) DEFAULT NULL,
   `lon` varchar(15) DEFAULT NULL,
   `url` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `districts`
@@ -367,7 +368,7 @@ CREATE TABLE `images` (
   `imgName` varchar(255) NOT NULL,
   `imgDesc` varchar(255) NOT NULL,
   `status` varchar(10) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `images`
@@ -390,7 +391,7 @@ CREATE TABLE `orders` (
   `orderDate` timestamp NOT NULL DEFAULT current_timestamp(),
   `orderId` varchar(100) DEFAULT NULL,
   `orderStatus` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `orders`
@@ -495,9 +496,9 @@ INSERT INTO `orders` (`id`, `userId`, `productId`, `quantity`, `orderDate`, `ord
 
 CREATE TABLE `ordertrackhistory` (
   `id` int(11) NOT NULL,
-  `orderId` varchar(100) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `remark` mediumtext DEFAULT NULL,
+  `orderId` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `remark` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `postingDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -576,7 +577,7 @@ CREATE TABLE `payment` (
   `fullAmount` int(100) DEFAULT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
   `delCharge` int(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `payment`
@@ -643,10 +644,10 @@ INSERT INTO `payment` (`id`, `orderId`, `paymentMethod`, `userId`, `payAmount`, 
 
 CREATE TABLE `policy` (
   `id` int(11) NOT NULL,
-  `policyName` varchar(30) NOT NULL,
-  `dataToggle` varchar(50) NOT NULL,
-  `description` varchar(1024) NOT NULL,
-  `icon` varchar(30) DEFAULT NULL,
+  `policyName` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dataToggle` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `icon` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `updationDate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -676,7 +677,7 @@ CREATE TABLE `productreviews` (
   `summary` varchar(255) DEFAULT NULL,
   `review` longtext DEFAULT NULL,
   `reviewDate` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `productreviews`
@@ -704,22 +705,22 @@ INSERT INTO `productreviews` (`id`, `productId`, `quality`, `price`, `value`, `n
 
 CREATE TABLE `products` (
   `id` int(11) NOT NULL,
-  `proCode` varchar(255) NOT NULL,
+  `proCode` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `brSuId` int(11) NOT NULL,
   `catId` int(11) NOT NULL,
   `subCatId` int(11) NOT NULL,
-  `productName` varchar(255) NOT NULL,
-  `productName_bn` varchar(255) NOT NULL,
-  `productionProcess` varchar(255) NOT NULL,
+  `productName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `productName_bn` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `productionProcess` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `whereFrom` int(11) NOT NULL,
-  `size` varchar(10) NOT NULL,
-  `color` varchar(10) NOT NULL,
-  `discription` longtext DEFAULT NULL,
-  `frontImg` varchar(255) DEFAULT NULL,
-  `backImg` varchar(255) DEFAULT NULL,
-  `leftImg` varchar(255) DEFAULT NULL,
-  `rightImg` varchar(255) DEFAULT NULL,
-  `status` varchar(5) DEFAULT NULL,
+  `size` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `color` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `frontImg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `backImg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `leftImg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `rightImg` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(5) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `postingDate` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -727,8 +728,9 @@ CREATE TABLE `products` (
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `proCode`, `brSuId`, `catId`, `subCatId`, `productName`, `productName_bn`, `productionProcess`, `whereFrom`, `size`, `color`, `discription`, `frontImg`, `backImg`, `leftImg`, `rightImg`, `status`, `postingDate`) VALUES
-(2, 'PRO-143461475311112', 14, 3, 46, 'Turmeric Powder', 'হলুদ গুঁড়া', 'Hand Made', 13, 'ALL', 'ALL', 'hello', 'pro_67ec22b032e766.86979441.jpg', 'pro_67ec22b03335c0.53383620.jpg', 'pro_67ec22b03367c6.54358525.jpeg', 'pro_67ec22b0338b60.03119103.jpg', 'A', '2025-04-01 17:30:24');
+INSERT INTO `products` (`id`, `proCode`, `brSuId`, `catId`, `subCatId`, `productName`, `productName_bn`, `productionProcess`, `whereFrom`, `size`, `color`, `description`, `frontImg`, `backImg`, `leftImg`, `rightImg`, `status`, `postingDate`) VALUES
+(2, 'PRO-1455911111', 14, 5, 59, 'Aftab Halim Mixed', 'আফতাব হালিম মিক্সড', 'chal, dal, vutta', 13, 'ALL', 'ALL', '', 'pro_67ef7ce34fede8.11737346.JPG', 'pro_67ef7ce35100b6.27405121.png', 'pro_67ef7ce3511bd0.20969941.png', 'pro_67ef7ce35128e8.70686057.png', 'A', '2025-04-04 06:32:03'),
+(3, 'PRO-1434611111', 14, 3, 46, 'Aftab Powder Spice Turmeric', 'আফতাব গুঁড়া মশলা হলুদ', 'Pure hold', 2, 'ALL', 'ALL', '', 'pro_67ef7db2130bb4.38726264.jpg', 'pro_67ef7db2132415.87582693.png', 'pro_67ef7db2133265.98912837.JPG', 'pro_67ef7db2134370.92920743.png', 'A', '2025-04-04 06:35:30');
 
 -- --------------------------------------------------------
 
@@ -738,8 +740,8 @@ INSERT INTO `products` (`id`, `proCode`, `brSuId`, `catId`, `subCatId`, `product
 
 CREATE TABLE `size` (
   `id` int(11) NOT NULL,
-  `sizeName` varchar(255) NOT NULL,
-  `sizeType` varchar(10) NOT NULL
+  `sizeName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sizeType` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -766,17 +768,17 @@ CREATE TABLE `stock` (
   `brSuId` int(11) NOT NULL,
   `catId` int(11) NOT NULL,
   `subCatId` int(11) NOT NULL,
-  `proId` varchar(50) NOT NULL,
-  `proCode` varchar(100) NOT NULL,
+  `proId` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `proCode` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `quantity` int(11) NOT NULL,
-  `pack` varchar(100) NOT NULL,
+  `pack` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `buyingPri` decimal(10,2) NOT NULL,
   `sellingPri` decimal(10,2) NOT NULL,
-  `couponCode` varchar(50) DEFAULT NULL,
-  `startDate` date NOT NULL,
-  `endDate` date DEFAULT NULL,
+  `couponCode` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `startDate` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `endDate` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `afterDisPri` decimal(10,2) DEFAULT NULL,
-  `status` enum('A','I') DEFAULT NULL,
+  `status` enum('A','I') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `postingDate` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -789,8 +791,8 @@ CREATE TABLE `stock` (
 CREATE TABLE `subcategory` (
   `id` int(11) NOT NULL,
   `catId` int(11) DEFAULT NULL,
-  `subCatName` varchar(255) DEFAULT NULL,
-  `subCatName_en` varchar(255) DEFAULT NULL,
+  `subCatName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `subCatName_en` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `creationDate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -823,19 +825,19 @@ INSERT INTO `subcategory` (`id`, `catId`, `subCatName`, `subCatName_en`, `creati
 
 CREATE TABLE `supplier` (
   `id` int(11) NOT NULL,
-  `supId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `name_bn` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `compName` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `address` text DEFAULT NULL,
-  `contactNo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `supId` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `name_bn` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `compName` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `address` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contactNo` varchar(15) CHARACTER SET utf8mb4 NOT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   `totalBuy` float(15,2) NOT NULL DEFAULT 0.00,
   `totalPaid` float(15,2) NOT NULL DEFAULT 0.00,
   `totalDue` float(15,2) NOT NULL DEFAULT 0.00,
   `regDate` timestamp NULL DEFAULT current_timestamp(),
-  `suppImg` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `status` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `suppImg` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `status` varchar(5) CHARACTER SET utf8mb4 NOT NULL,
   `updateDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -854,13 +856,13 @@ INSERT INTO `supplier` (`id`, `supId`, `name`, `name_bn`, `compName`, `address`,
 
 CREATE TABLE `userlog` (
   `id` int(11) NOT NULL,
-  `userName` varchar(255) DEFAULT NULL,
-  `userEmail` varchar(255) DEFAULT NULL,
-  `password` varchar(255) NOT NULL,
-  `contactNo` varchar(11) DEFAULT NULL,
+  `userName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `userEmail` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `contactNo` varchar(11) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `userIp` binary(16) DEFAULT NULL,
   `logonTime` timestamp NULL DEFAULT current_timestamp(),
-  `logoutTime` varchar(255) DEFAULT NULL,
+  `logoutTime` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `status` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -876,9 +878,27 @@ INSERT INTO `userlog` (`id`, `userName`, `userEmail`, `password`, `contactNo`, `
 (27, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-29 05:40:01', NULL, 1),
 (28, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-29 07:38:40', '2025-03-29 23:48:26', 0),
 (29, 'sumaiya', 'sumaiya@gmail.com', '1a100d2c0dab19c4430e7d73762b3423', '01810547599', 0x3132372e302e302e3100000000000000, '2025-03-29 12:48:36', NULL, 1),
-(30, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-31 09:55:31', NULL, 1),
-(31, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3a3a3100000000000000000000000000, '2025-04-01 13:01:07', NULL, 1),
-(32, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3a3a3100000000000000000000000000, '2025-04-02 12:34:27', NULL, 1);
+(30, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-03-31 09:55:31', '2025-04-01 00:11:20', 0),
+(31, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-04 00:49:52', NULL, 1),
+(32, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-04 09:31:34', NULL, 1),
+(33, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-04 11:13:59', NULL, 1),
+(34, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-04 11:18:30', NULL, 1),
+(35, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-04 12:19:19', NULL, 1),
+(36, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-04 12:22:56', NULL, 1),
+(37, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-04 14:46:47', '2025-04-05 01:25:25', 0),
+(38, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-05 03:59:53', NULL, 1),
+(39, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-05 13:15:07', '2025-04-05 23:15:10', 0),
+(40, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-05 13:15:11', NULL, 1),
+(41, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-05 13:18:44', NULL, 1),
+(42, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-05 13:20:15', NULL, 1),
+(43, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-05 13:36:39', NULL, 1),
+(44, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-05 13:43:36', NULL, 1),
+(45, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-05 13:53:04', NULL, 1),
+(46, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 11:46:31', '2025-04-09 22:43:38', 0),
+(47, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 12:43:39', NULL, 1),
+(48, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 12:58:18', NULL, 1),
+(49, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 13:01:35', '2025-04-09 23:01:41', 0),
+(50, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 13:01:52', '2025-04-09 23:41:54', 0);
 
 -- --------------------------------------------------------
 
@@ -888,10 +908,10 @@ INSERT INTO `userlog` (`id`, `userName`, `userEmail`, `password`, `contactNo`, `
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) DEFAULT NULL,
-  `name_bn` varchar(255) DEFAULT NULL,
-  `status` varchar(3) DEFAULT NULL,
-  `return` varchar(5) NOT NULL
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name_bn` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(3) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `return` varchar(5) COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -923,6 +943,29 @@ CREATE TABLE `wishlist` (
 
 INSERT INTO `wishlist` (`id`, `userId`, `productId`, `postingDate`) VALUES
 (4, 7, 27, '2021-01-11 06:34:28');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `xxx`
+--
+
+CREATE TABLE `xxx` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `phone` varchar(15) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `xxx`
+--
+
+INSERT INTO `xxx` (`id`, `name`, `email`, `phone`) VALUES
+(1, 'saifur', 'saifur1985bd@gmail.com', '1540505646'),
+(2, 'sumaiya', 'aksumaiya@gmail.com', '1810547599'),
+(3, 'saifur', 'saifur1985bd@gmail.com', '1540505646'),
+(4, 'sumaiya', 'aksumaiya@gmail.com', '1810547599');
 
 --
 -- Indexes for dumped tables
@@ -1025,12 +1068,6 @@ ALTER TABLE `size`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `stock`
---
-ALTER TABLE `stock`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `subcategory`
 --
 ALTER TABLE `subcategory`
@@ -1058,6 +1095,12 @@ ALTER TABLE `users`
 -- Indexes for table `wishlist`
 --
 ALTER TABLE `wishlist`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `xxx`
+--
+ALTER TABLE `xxx`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1146,19 +1189,13 @@ ALTER TABLE `productreviews`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `size`
 --
 ALTER TABLE `size`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
-
---
--- AUTO_INCREMENT for table `stock`
---
-ALTER TABLE `stock`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `subcategory`
@@ -1176,7 +1213,7 @@ ALTER TABLE `supplier`
 -- AUTO_INCREMENT for table `userlog`
 --
 ALTER TABLE `userlog`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1188,6 +1225,12 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `wishlist`
 --
 ALTER TABLE `wishlist`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `xxx`
+--
+ALTER TABLE `xxx`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 COMMIT;
 

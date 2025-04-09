@@ -331,6 +331,7 @@ if (isset($_GET['del']) && $productId > 0) {
                                     <li class="list-inline-item">Product ( পণ্য ) </li>
                                  </ul>
                               </div>
+							  <button class="au-btn au-btn-icon au-btn--blue"><a href="csv_upload.php" style="color:#FFF">CSV File Upload (সিএসভি ফাইল আপলোড)</a></button>
 							  <button id="submitProduct" class="au-btn au-btn-icon au-btn--green"><?php echo $productId ? 'Update (হালনাগাদ করুন)' : 'Submit (সংরক্ষণ করুন)'; ?></button>
                            </div>
                         </div>
