@@ -1,7 +1,7 @@
 <?php
+
 session_start();
-error_reporting(0);
-include("include/config.php");
+include("../includes/config.php");
 
 if (isset($_POST['submit'])) {
     $userName = $_POST['userName'];
@@ -100,16 +100,25 @@ if (isset($_POST['submit'])) {
 			</div>
 			<div class="card-footer">
 				<div class="d-flex justify-content-center links">
-					<a href="index.php">
+				  <a href="index.php">
 					<?php
-					$sql=mysqli_query($con,"select * from basic where id='1'");
-					while($row=mysqli_fetch_array($sql))
-					{	?>
-					<img src="logo/<?php echo $row['id'];?>/<?php echo $row['logo'];?>"  alt="<?php if(isset($compName)){ echo $compName;}?>"/>
-					<?php } ?>
-				</a>
+					if (isset($con) && $con) {
+						$sql = mysqli_query($con, "SELECT * FROM COMPANY a LEFT JOIN BASIC b ON a.id = b.compId WHERE a.id = 1 AND a.status = 'A'");
+						if ($sql) {
+							while ($row = mysqli_fetch_array($sql)) {
+								?>
+								<img src="logo/<?php echo $row['id']; ?>/<?php echo $row['logo']; ?>" />
+								<?php
+							}
+						} else {
+							echo "Query failed: " . mysqli_error($con);
+						}
+					} else {
+						echo "Database connection not available.";
+					}
+					?>
+				  </a>
 				</div>
-				
 			</div>
 		</div>
 	</div>

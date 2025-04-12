@@ -46,6 +46,10 @@
             </span>
           </a>
           <ul class="list-unstyled navbar__sub-list js-sub-list">
+		    <li>
+              <a href="company.php">
+                <i class="fas fa-tachometer-alt"></i>Company Form </a>
+            </li>
             <li>
               <a href="basic.php">
                 <i class="fas fa-tachometer-alt"></i>Company Info </a>

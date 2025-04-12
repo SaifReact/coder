@@ -1,22 +1,29 @@
 <?php
-   define('DB_SERVER','localhost');
-   define('DB_USER','root');
-   define('DB_PASS' ,'');
-   define('DB_NAME', 'ecodermart');
-   $con = mysqli_connect(DB_SERVER,DB_USER,DB_PASS,DB_NAME);
-   // Check connection
-   if (mysqli_connect_errno())
-   {
-    echo "Failed to connect to MySQL: " . mysqli_connect_error();
-   }
-   
+define('DB_SERVER','localhost');
+define('DB_USER','root');
+define('DB_PASS' ,'');
+define('DB_NAME', 'coder');
 
-	$sql=mysqli_query($con,"select * from basic where id='1'");
-	while($row=mysqli_fetch_array($sql))
-	{	
-	    $id=$row['id'];
-		$compName=$row['compName'];
-		$compName_en=$row['compName_en'];
+$con = mysqli_connect(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
+
+if (!$con) {
+    die("Connection failed: " . mysqli_connect_error());
+} else {
+    echo "Connected successfully!";
+}
+
+$compId = 1;
+$stmt = $con->prepare("SELECT * FROM COMPANY a LEFT JOIN BASIC b ON a.id = b.compId WHERE a.id = ? AND a.status = 'A'");
+$stmt->bind_param("i", $compId);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($row = $result->fetch_assoc()) {
+		$id = $row['id'];
+		$companyName = $row['companyName'];
+		$companyName_bn = $row['companyName_bn'];
+		$compId = $row['compId'];
+		$description=$row['description'];
 		$address=$row['address'];
 		$logo=$row['logo'];
 		$currency=$row['currency'];
@@ -29,7 +36,8 @@
 		$delivery_method=$row['delivery_method'];
 		$messanger_group=$row['messanger_group'];
 		$whatapps_group=$row['whatapps_group'];
-	}
-	
-	
+}
+
+$stmt->close();
+mysqli_close($con);
 ?>

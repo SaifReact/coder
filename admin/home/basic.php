@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../include/config.php');
+include('../../includes/config.php');
 
 if (empty($_SESSION['alogin'])) {
     header('location:index.php');
@@ -8,17 +8,28 @@ if (empty($_SESSION['alogin'])) {
 }
 
 $basicId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$basic = ['compName' => '', 'compName_en' => '', 'address'  => '', 'phone'  => '', 'office_phone'  => '', 'email'  => '', 
+$basic = ['compId' => '', 'description' => '', 'address'  => '', 'phone'  => '', 'office_phone'  => '', 'email'  => '', 
 'logo'  => '', 'currency'  => '', 'facebook'  => '', 'twitter'  => '', 'linkedin'  => '', 'open_time'  => '', 'close_time'  => '', 
 'delivery_process'  => '', 'messanger_group' => '', 'whatapps_group' => ''];
 
 function getBasic($con, $basicId) {
-    $stmt = $con->prepare("SELECT * FROM basic WHERE id = ?");
+    $stmt = $con->prepare("SELECT * FROM company a LEFT JOIN basic b ON a.id = b.compId WHERE a.id = ?");
     $stmt->bind_param("i", $basicId);
     $stmt->execute();
     $result = $stmt->get_result();
     $stmt->close();
     return $result->fetch_assoc() ?: null;
+}
+
+if ($basicId > 0) {
+    $basicData = getBasic($con, $basicId);
+    if ($basicData) {
+        $basic = $basicData;
+    } else {
+        $_SESSION['msg'] = "Basic not found.";
+        header('Location: basic.php');
+        exit();
+    }
 }
 
 function handleImageUpload($file) {
@@ -37,22 +48,11 @@ function handleImageUpload($file) {
     return [true, null];
 }
 
-if ($basicId > 0) {
-    $basicData = getBasic($con, $basicId);
-    if ($basicData) {
-        $basic = $basicData;
-    } else {
-        $_SESSION['msg'] = "category not found.";
-        header('Location: category.php');
-        exit();
-    }
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
+	
     // Sanitize and assign input data, falling back to empty strings where needed
-    $compName = trim($_POST['compName'] ?? '');
-    $compName_en = trim($_POST['compName_en'] ?? '');
+    $compId = trim($_POST['compId'] ?? '');
+    $description = trim($_POST['description'] ?? '');
     $address = trim($_POST['address'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $office_phone = trim($_POST['office_phone'] ?? '');
@@ -88,77 +88,128 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newLogoImageName = $newLogoImageName ?: $basic['logo'];
     $newCurrImageName = $newCurrImageName ?: $basic['currency'];
 
-    // Check if category is being updated
     if ($basicId > 0) {
-    // Check if any data has changed
-    if (
-        $compName !== $basic['compName'] || 
-        $compName_en !== $basic['compName_en'] || 
-        $address !== $basic['address'] ||
-        $phone !== $basic['phone'] ||
-        $office_phone !== $basic['office_phone'] ||
-        $email !== $basic['email'] ||
-        $newLogoImageName !== $basic['logo'] || 
-        $newCurrImageName !== $basic['currency'] ||
-        $facebook !== $basic['facebook'] ||
-        $twitter !== $basic['twitter'] ||
-        $linkedin !== $basic['linkedin'] ||
-        $open_time !== $basic['open_time'] ||
-        $close_time !== $basic['close_time'] ||
-        $delivery_method !== $basic['delivery_method'] ||
-        $messanger_group !== $basic['messanger_group'] ||
-        $whatapps_group !== $basic['whatapps_group']
-    ) {
-        // Prepare the SQL statement
-        $stmt = $con->prepare("UPDATE basic SET compName = ?, compName_en = ?, address = ?, phone = ?, office_phone = ?, 
-        email = ?, logo = ?, currency = ?, facebook = ?, twitter = ?, linkedin = ?, open_time = ?, close_time = ?, 
-        delivery_method = ?, messanger_group = ?, whatapps_group = ? WHERE id = ?");
+        // Update only if there are changes
+        if (
+			$compId !== $basic['compId'] || 
+			$description !== $basic['description'] || 
+			$address !== $basic['address'] ||
+			$phone !== $basic['phone'] ||
+			$office_phone !== $basic['office_phone'] ||
+			$email !== $basic['email'] ||
+			$newLogoImageName !== $basic['logo'] || 
+			$newCurrImageName !== $basic['currency'] ||
+			$facebook !== $basic['facebook'] ||
+			$twitter !== $basic['twitter'] ||
+			$linkedin !== $basic['linkedin'] ||
+			$open_time !== $basic['open_time'] ||
+			$close_time !== $basic['close_time'] ||
+			$delivery_method !== $basic['delivery_method'] ||
+			$messanger_group !== $basic['messanger_group'] ||
+			$whatapps_group !== $basic['whatapps_group']) {
+				
+            // Prepare the SQL statement
+			$stmt = $con->prepare("UPDATE basic SET compId = ?, description = ?, address = ?, phone = ?, office_phone = ?, 
+			email = ?, logo = ?, currency = ?, facebook = ?, twitter = ?, linkedin = ?, open_time = ?, close_time = ?, 
+			delivery_method = ?, messanger_group = ?, whatapps_group = ? WHERE id = ?");
 
-        if ($stmt === false) {
-            die("Prepare failed: " . $con->error);
-        }
+			if (!$stmt) {
+					die("Prepare failed: Update Column Error" . $con->error); // Debugging: Show MySQL error
+				}
 
-        // Bind parameters
-        $stmt->bind_param(
-            "ssssssssssssssssi",
-            $compName, $compName_en, $address, $phone, $office_phone, $email, 
-            $newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time, 
-            $delivery_method, $messanger_group, $whatapps_group, $basicId
-        );
+			// Bind parameters
+			$stmt->bind_param(
+				"ssssssssssssssssi",
+				$compId, $description, $address, $phone, $office_phone, $email, 
+				$newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time, 
+				$delivery_method, $messanger_group, $whatapps_group, $basicId
+			);
 
-        // Execute and close
-        if ($stmt->execute()) {
-            // Move the uploaded images if they exist
-            $logoDir = "../logo/$basicId";
-            if (!is_dir($logoDir)) mkdir($logoDir, 0777, true);
+			// Execute and close
+			if ($stmt->execute()) {
+				// Move the uploaded images if they exist
+				$logoDir = "../logo/$basicId";
+				if (!is_dir($logoDir)) mkdir($logoDir, 0777, true);
 
-            if (!empty($_FILES['logo']['name'])) {
-                move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
-            }
+				if (!empty($_FILES['logo']['name'])) {
+					move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
+				}
 
-            if (!empty($_FILES['currency']['name'])) {
-                move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
-            }
+				if (!empty($_FILES['currency']['name'])) {
+					move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
+				}
 
+				$_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
+			} else {
+				$_SESSION['warnmsg'] = "Update failed: " . $stmt->error;
+			}
+		
+            $stmt->close();
+            
             $_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
         } else {
-            $_SESSION['warnmsg'] = "Update failed: " . $stmt->error;
+            $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
+        }
+    } else {
+        $stmt = $con->prepare("INSERT INTO company (compId, description, address, phone, office_phone, email, 
+				newLogoImageName, newCurrImageName, facebook, twitter, linkedin, open_time, close_time, 
+				delivery_method, messanger_group, whatapps_group) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        if (!$stmt) {
+            die("Prepare failed: Insert Column Error" . $con->error);
+        }
+
+        $stmt->bind_param("ssssssssssssssss", $compId, $description, $address, $phone, $office_phone, $email, 
+				$newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time, 
+				$delivery_method, $messanger_group, $whatapps_group);
+        
+        if ($stmt->execute()) {
+			$basicId = $stmt->insert_id;
+			$dir = "../logo/$basicId";
+            if (!is_dir($dir)) mkdir($dir, 0777, true);
+			if (!empty($_FILES['logo']['name'])) {
+                move_uploaded_file($_FILES['logo']['tmp_name'], "$dir/$newLogoImageName");
+            }
+			if (!empty($_FILES['currency']['name'])) {
+                move_uploaded_file($_FILES['currency']['tmp_name'], "$dir/$newCurrImageName");
+            }
+            $_SESSION['msg'] = "Added Successfully (সফলভাবে সংযুক্ত করা হয়েছে)!";
+        } else {
+            $_SESSION['warnmsg'] = "Database error: Operation failed.";
         }
 
         $stmt->close();
-    } else {
-        $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
     }
-} else {
-    $_SESSION['warnmsg'] = "Invalid ID!";
+
+    header('Location: basic.php');
+    exit();
 }
 
 
-    // Redirect to the basic.php page with appropriate messages
+if (isset($_GET['del']) && $basicId > 0) {
+    $product = getBasic($con, $basicId);
+    if ($product) {
+        $stmt = $con->prepare("DELETE FROM basic WHERE id = ?");
+        $stmt->bind_param("i", $basicId);
+        if ($stmt->execute()) {
+            $basicDir = "../logo/$basicId";
+            if (is_dir($productDir)) {
+                array_map('unlink', glob("$basicDir/*"));
+                rmdir($productDir);
+            }
+            $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
+        } else {
+            $_SESSION['delmsg'] = "Database error: Failed to delete Basic Info.";
+        }
+        $stmt->close();
+    } else {
+        $_SESSION['delmsg'] = "Basic Info not found. Cannot delete.";
+    }
     header('Location: basic.php');
     exit();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -212,29 +263,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                  <form id="basicForm" action="" method="post" enctype="multipart/form-data" novalidate="novalidate">
                                     <div class="row">
                                        <div class="col-6">
+											<div class="form-group">
+												<label for="compId" class="form-control-label">Category ( ক্যাটাগরি )</label>
+												<select name="compId" id="compId" class="form-control" onChange="getSubcat(this.value);">
+													<option value="0">Please Select - নির্বাচন করুন</option>
+													<?php 
+													$selectedCompId = $product['compId'] ?? 0;
+
+													$query = mysqli_query($con, "SELECT * FROM COMPANY");
+
+													while ($row = mysqli_fetch_array($query)) {
+														$isSelected = ($row['id'] == $selectedCompId) ? 'selected' : '';
+														echo "<option value='" . htmlentities($row['id']) . "' $isSelected>" 
+															 . htmlentities($row['companyName']) . " - " 
+															 . htmlentities($row['companyName_bn']) . "</option>";
+													}
+													?>
+												</select>
+											</div>
+										</div>
+										<div class="col-6">
                                           <div class="form-group">
-                                             <label for="compName_en" class="control-label mb-1">Company Name ( কোম্পানি নাম )</label>
-                                             <input id="compName_en" name="compName_en" type="text" class="form-control compName_en valid"  autocomplete="compName_en" aria-required="true" aria-invalid="false" aria-describedby="compName_en-error"
-                                                placeholder="Enter Company Name" value="<?php echo htmlentities($basic['compName_en']); ?>" required>
+                                             <label for="address" class="control-label mb-1">Address ( ঠিকানা)</label>
+											 <textarea name="address" id="address" rows="2" placeholder="Address ( ঠিকানা)..." class="form-control"><?php echo htmlentities($basic['address'] ?? ''); ?></textarea>
                                           </div>
-                                       </div>
-                                       <div class="col-6">
-                                          <label for="compName_en" class="control-label mb-1">Company Name Bangla ( কোম্পানি নাম বাংলা)</label>
-                                          <input id="compName" name="compName" type="text" class="form-control compName valid"  autocomplete="compName" aria-required="true" aria-invalid="false" aria-describedby="compName-error"
-                                             placeholder="Enter Company Name Bangla" value="<?php echo htmlentities($basic['compName']); ?>" required>
                                        </div>
                                     </div>
 									<div class="row">
                                        <div class="col-6">
-                                          <div class="form-group">
-                                             <label for="address" class="control-label mb-1">Address ( ঠিকানা)</label>
-											 <textarea name="address" id="address" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['address'] ?? ''); ?></textarea>
-                                          </div>
-                                       </div>
+										<div class="form-group">
+                                          <label for="description" class="control-label mb-1">Company Description ( কোম্পানির বিবরণ )</label>
+                                          <textarea name="description" id="delivery_method" rows="5" placeholder="Company Description ( কোম্পানির বিবরণ )..." class="form-control"><?php echo htmlentities($basic['description'] ?? ''); ?></textarea>
+										</div>
+									   </div>
 									   <div class="col-6">
                                           <div class="form-group">
                                              <label for="delivery_method" class="control-label mb-1">Delivery Method ( ডেলিভারি মেথড )</label>
-                                             <textarea name="delivery_method" id="delivery_method" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($basic['delivery_method'] ?? ''); ?></textarea>
+                                             <textarea name="delivery_method" id="delivery_method" rows="5" placeholder="Delivery Method ( ডেলিভারি মেথড )..." class="form-control"><?php echo htmlentities($basic['delivery_method'] ?? ''); ?></textarea>
                                           </div>
                                        </div>
                                     </div>

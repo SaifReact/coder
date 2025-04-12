@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../include/config.php');
+include('../../includes/config.php');
 
 if (empty($_SESSION['alogin'])) {
     header('location:index.php');
@@ -231,7 +231,6 @@ if (isset($_GET['del']) && $catId > 0) {
                                         <tr>
                                             <th>#</th>
                                             <th>Category <br>( ক্যাটাগরি )</th>
-											<th>Category Bang <br>( ক্যাটাগরি বাং )</th>
                                             <th>Image <br>( ছবি )</th>
                                             <th>Creation Date <br>( সংরক্ষণ তারিখ )</th>
                                             <th>Action <br>( কর্ম পদ্ধতি )</th>
@@ -245,8 +244,7 @@ if (isset($_GET['del']) && $catId > 0) {
                                         ?>
                                     <tr>
                                        <td><?php echo $cnt++; ?></td>
-									   <td><?php echo htmlentities($row['catName_en']); ?></td>
-									   <td><?php echo htmlentities($row['catName']); ?></td>
+									   <td><?php echo htmlentities($row['catName_en']).' - '.htmlentities($row['catName']); ?></td>
                                        <td><img src="../categoryimages/<?php echo $row['id']; ?>/<?php echo htmlentities($row['catImage']); ?>" width="100" height="100"></td>
                                        <td><?php echo htmlentities($row['creationDate']); ?></td>
 									   <td>

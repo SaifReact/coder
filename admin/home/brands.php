@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../include/config.php');
+include('../../includes/config.php');
 
 if (empty($_SESSION['alogin'])) {
     header('location:index.php');
@@ -231,7 +231,6 @@ if (isset($_GET['del']) && $brandId > 0) {
                                         <tr>
                                             <th>#</th>
                                             <th>Brands <br>( ব্র্যান্ডস )</th>
-											<th>Brands Bang <br>( ব্র্যান্ডস বাং )</th>
                                             <th>Image <br>( ছবি )</th>
                                             <th>Creation Date <br>( সংরক্ষণ তারিখ )</th>
                                             <th>Action <br>( কর্ম পদ্ধতি )</th>
@@ -245,8 +244,7 @@ if (isset($_GET['del']) && $brandId > 0) {
                                         ?>
                                     <tr>
                                        <td><?php echo $cnt++; ?></td>
-									   <td><?php echo htmlentities($row['brandsName_en']); ?></td>
-									   <td><?php echo htmlentities($row['brandsName']); ?></td>
+									   <td><?php echo htmlentities($row['brandsName_en']).' - '.htmlentities($row['brandsName']); ?></td>
                                        <td><img src="../brandsimages/<?php echo $row['id']; ?>/<?php echo htmlentities($row['brandsImage']); ?>" width="100" height="100"></td>
                                        <td><?php echo htmlentities($row['postingDate']); ?></td>
 									   <td>

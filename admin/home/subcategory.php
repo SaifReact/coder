@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../include/config.php');
+include('../../includes/config.php');
 
 if (empty($_SESSION['alogin'])) {
     header('location:index.php');
@@ -204,7 +204,6 @@ if (isset($_GET['del']) && $subCatId > 0) {
                                             <th>#</th>
                                             <th>Category <br>( ক্যাটাগরি )</th>
 											<th>Sub Category <br>( উপ ক্যাটাগরি )</th>
-											<th>Sub Category Bang <br>( উপ ক্যাটাগরি বাং )</th>
                                             <th>Creation Date <br>( সংরক্ষণ তারিখ )</th>
                                             <th>Action <br>( কর্ম পদ্ধতি )</th>
                                         </tr>
@@ -218,8 +217,7 @@ if (isset($_GET['del']) && $subCatId > 0) {
                                     <tr>
                                        <td><?php echo $cnt++; ?></td>
 									   <td><?php echo htmlentities($row['catName']).' - '.htmlentities($row['catName_en']); ?></td>
-									   <td><?php echo htmlentities($row['subCatName_en']); ?></td>
-									   <td><?php echo htmlentities($row['subCatName']); ?></td>
+									   <td><?php echo htmlentities($row['subCatName_en']).' - '.htmlentities($row['subCatName']); ?></td>
                                        <td><?php echo htmlentities($row['creationDate']); ?></td>
 									   <td>
                                         <div class="table-data-feature">

@@ -7,51 +7,52 @@ if (empty($_SESSION['alogin'])) {
     exit();
 }
 
-$couponId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$coupon = ['couponCode' => '', 'cashOff'  => '', 'value' => '', 'status' => '' ];
+$companyId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$company = ['companyName' => '', 'companyName_bn'  => '', 'status' => '' ];
 
-function getCoupon($con, $couponId) {
-    $stmt = $con->prepare("SELECT * FROM coupon");
-    $stmt->bind_param("i", $couponId);
+function getCompany($con, $companyId) {
+    $stmt = $con->prepare("SELECT * FROM company WHERE id = ?");
+    $stmt->bind_param("i", $companyId);
     $stmt->execute();
     $result = $stmt->get_result();
     $stmt->close();
     return $result->fetch_assoc() ?: null;
 }
 
-if ($couponId > 0) {
-    $couponData = getCoupon($con, $couponId);
-    if ($couponData) {
-        $coupon = $couponData;
+if ($companyId > 0) {
+    $companyData = getCompany($con, $companyId);
+    if ($companyData) {
+        $company = $companyData;
     } else {
-        $_SESSION['msg'] = "Coupon Not Found.";
-        header('Location: coupon.php');
+        $_SESSION['msg'] = "Company Not Found.";
+        header('Location: company.php');
         exit();
     }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $cashOff = trim($_POST['cashOff'] ?? '');
-    $value = $cashOff / 100;
-    $couponCode = 'coupon' . $cashOff;
+	
+    $companyName = trim($_POST['companyName'] ?? '');
+	$companyName_bn = trim($_POST['companyName_bn'] ?? '');
     $status = trim($_POST['status'] ?? 'A'); // Set default status to 'A' if not provided
 
-    if (empty($cashOff)) {
+     // Prevent processing if required fields are missing
+    if (empty($companyName) || empty($companyName_bn)) {
         $_SESSION['warnmsg'] = "Input Information are required (ইনপুট তথ্য অতি আবশ্যক).";
-        header('Location: coupon.php');
+        header('Location: company.php');
         exit();
     }
 
-    if ($couponId > 0) {
+    if ($companyId > 0) {
         // Update only if there are changes
-        if ($cashOff !== $coupon['cashOff'] || $value !== $coupon['value'] || $couponCode !== $coupon['couponCode'] || $status !== $coupon['status']) {
-            $stmt = $con->prepare("UPDATE coupon SET couponCode = ?, cashOff = ?, value = ?, status = ? WHERE id = ?");
+        if ($companyName !== $company['companyName'] || $companyName_bn !== $company['companyName_bn'] || $status !== $company['status']) {
+            $stmt = $con->prepare("UPDATE company SET companyName = ?, companyName_bn = ?, status = ? WHERE id = ?");
             
             if (!$stmt) {
-                die("Prepare failed: hi" . $con->error); // Debugging: Show MySQL error
+                die("Prepare failed: Update Column Error" . $con->error); // Debugging: Show MySQL error
             }
 
-            $stmt->bind_param("ssssi", $couponCode, $cashOff, $value, $status, $couponId);
+            $stmt->bind_param("sssi", $companyName, $companyName_bn, $status, $companyId);
             $stmt->execute();
             $stmt->close();
             
@@ -60,13 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
         }
     } else {
-        $stmt = $con->prepare("INSERT INTO coupon (couponCode, cashOff, value, status) VALUES (?, ?, ?, ?)");
+        $stmt = $con->prepare("INSERT INTO company (companyName, companyName_bn, status) VALUES (?, ?, ?)");
 
         if (!$stmt) {
-            die("Prepare failed: hello" . $con->error);
+            die("Prepare failed: Insert Column Error" . $con->error);
         }
 
-        $stmt->bind_param("ssss", $couponCode, $cashOff, $value, $status);
+        $stmt->bind_param("sss", $companyName, $companyName_bn, $status,);
         
         if ($stmt->execute()) {
             $_SESSION['msg'] = "Added Successfully (সফলভাবে সংযুক্ত করা হয়েছে)!";
@@ -77,16 +78,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 
-    header('Location: coupon.php');
+    header('Location: company.php');
     exit();
 }
 
 
-if (isset($_GET['del']) && $couponId > 0) {
-    $coupon = getCoupon($con, $couponId);
+if (isset($_GET['del']) && $companyId > 0) {
+    $coupon = getCompany($con, $companyId);
     if ($coupon) {
-        $stmt = $con->prepare("DELETE FROM coupon WHERE id = ?");
-        $stmt->bind_param("i", $couponId);
+        $stmt = $con->prepare("DELETE FROM company WHERE id = ?");
+        $stmt->bind_param("i", $companyId);
         if ($stmt->execute()) {
             $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
         } else {
@@ -94,9 +95,9 @@ if (isset($_GET['del']) && $couponId > 0) {
         }
         $stmt->close();
     } else {
-        $_SESSION['delmsg'] = "Coupon not found. Cannot delete.";
+        $_SESSION['delmsg'] = "Company not found. Cannot delete.";
     }
-    header('Location: coupon.php');
+    header('Location: company.php');
     exit();
 }
 ?>
@@ -130,10 +131,10 @@ if (isset($_GET['del']) && $couponId > 0) {
                                     <li class="list-inline-item seprate">
                                        <span>/</span>
                                     </li>
-                                    <li class="list-inline-item">Coupon (কুপন) </li>
+                                    <li class="list-inline-item">Company (কোম্পানি) </li>
                                  </ul>
                               </div>
-							  <button id="submitCoupon" class="au-btn au-btn-icon au-btn--green"><?php echo $couponId ? 'Update (হালনাগাদ করুন)' : 'Submit (সংরক্ষণ করুন)'; ?></button>
+							  <button id="submitCompany" class="au-btn au-btn-icon au-btn--green"><?php echo $companyId ? 'Update (হালনাগাদ করুন)' : 'Submit (সংরক্ষণ করুন)'; ?></button>
                            </div>
                         </div>
                      </div>
@@ -147,21 +148,28 @@ if (isset($_GET['del']) && $couponId > 0) {
                      <div class="row">
                         <div class="col-lg-12">
                            <div class="card">
-                              <div class="card-header"><?php echo $couponId ? 'Update' : 'Add'; ?> coupon (কুপন <?php echo $couponId ? 'হালনাগাদ' : 'সংযুক্তকরণ'; ?> )</div>
+                              <div class="card-header"><?php echo $companyId ? 'Update' : 'Add'; ?> Company (কোম্পানি <?php echo $companyId ? 'হালনাগাদ' : 'সংযুক্তকরণ'; ?> )</div>
                               <div class="card-body">
-                                 <form id="couponForm" action="" method="post" enctype="multipart/form-data" novalidate="novalidate">
+                                 <form id="companyForm" action="" method="post" enctype="multipart/form-data" novalidate="novalidate">
                                     <div class="row">
                                        <div class="col-6">
-                                          <label for="cashOff" class="control-label mb-1">Cash Offer ( নগদ অফার - নীট মূল্য হতে যত টাকা কমবে )</label>
-                                             <input id="cashOff" name="cashOff" type="text" class="form-control cashOff valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="cashOff"
-                                                placeholder="Enter Cash Off Taka" value="<?php echo htmlentities($coupon['cashOff']); ?>">
+                                          <label for="companyName" class="control-label mb-1">Company Name ( কোম্পানি নাম )</label>
+                                             <input id="companyName" name="companyName" type="text" class="form-control companyName valid"  autocomplete="companyName"
+                                                placeholder="Enter Company Name" value="<?php echo htmlentities($company['companyName']); ?>">
                                        </div>
-									   <?php if ($couponId && $coupon['status']) { ?>
+									   <div class="col-6">
+                                          <label for="companyName_bn" class="control-label mb-1">Company Name Bangla ( কোম্পানি নাম বাংলা )</label>
+                                             <input id="companyName_bn" name="companyName_bn" type="text" class="form-control companyName_bn valid" autocomplete="companyName_bn"
+                                                placeholder="Enter Company Name Bangla" value="<?php echo htmlentities($company['companyName_bn']); ?>">
+                                       </div>
+									</div>
+									<div class="row">
+									   <?php if ($companyId && $company['status']) { ?>
 										<div class="col-6">
-											<label for="status">Status</label>
+											<label for="status">Status ( অবস্থা )</label>
 											<select name="status" id="status" class="form-control">
-												<option value="A" <?php echo ($coupon['status'] == 'A') ? 'Active' : ''; ?>>Active (সক্রিয়)</option>
-												<option value="I" <?php echo ($coupon['status'] == 'I') ? 'Inactive' : ''; ?>>Inactive (নিষ্ক্রিয়)</option>
+												<option value="A" <?php echo ($company['status'] == 'A') ? 'Active' : ''; ?>>Active (সক্রিয়)</option>
+												<option value="I" <?php echo ($company['status'] == 'I') ? 'Inactive' : ''; ?>>Inactive (নিষ্ক্রিয়)</option>
 											</select>
 										</div>
 									<?php } ?>
@@ -179,9 +187,7 @@ if (isset($_GET['del']) && $couponId > 0) {
                                  <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>Cash Off <br> ( নগদ অফার )</th>
-											<th>Coupon Code <br> ( কুপন কোড )</th>
-											<th>Value <br>( শতকরা % )</th>
+                                            <th>Company Name<br> ( কোম্পানি নাম )</th>
 											<th>Status <br>( অবস্থা )</th>
 											<th>Creation Date <br>( সংরক্ষণ তারিখ )</th>
                                             <th>Action <br>( কর্ম পদ্ধতি )</th>
@@ -189,26 +195,24 @@ if (isset($_GET['del']) && $couponId > 0) {
                                     </thead>
                                  <tbody>
 								 <?php 
-                                        $query = $con->query("SELECT * FROM coupon ORDER BY id DESC");
+                                        $query = $con->query("SELECT * FROM company ORDER BY id DESC");
                                         $cnt = 1;
                                         while ($row = $query->fetch_assoc()) { 
                                         ?>
                                     <tr>
                                        <td><?php echo $cnt++; ?></td>
-									   <td><?php echo htmlentities($row['cashOff']); ?></td>
-									   <td><?php echo htmlentities($row['couponCode']); ?></td>
-									   <td><?php echo htmlentities($row['value']); ?></td>
+									   <td><?php echo htmlentities($row['companyName']).' - '.htmlentities($row['companyName_bn']); ?></td>
 									   <td><?php echo htmlentities($row['status'] == 'A') ? 'Active (সক্রিয়)' : 'Inactive (নিষ্ক্রিয়)'; ?></td>
-									   <td><?php echo htmlentities($row['creation_date']); ?></td>
+									   <td><?php echo htmlentities($row['creationDate']); ?></td>
 									   <td>
                                         <div class="table-data-feature">
 											<button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
-												<a href="coupon.php?id=<?php echo $row['id']; ?>" style="text-decoration: none; display: flex; align-items: center;">
+												<a href="company.php?id=<?php echo $row['id']; ?>" style="text-decoration: none; display: flex; align-items: center;">
 													<i class="zmdi zmdi-edit" style="color:#008000"></i>
 												</a>
 											</button>
 											<button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
-												<a href="coupon.php?id=<?php echo $row['id']; ?>&del=delete" onClick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
+												<a href="company.php?id=<?php echo $row['id']; ?>&del=delete" onClick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
 													<i class="zmdi zmdi-delete" style="color:#FF0000"></i>
 												</a>
 											</button>
@@ -232,8 +236,8 @@ if (isset($_GET['del']) && $couponId > 0) {
       </div>
       <?php include('share/js.php');?>
 	  <script>
-		document.getElementById("submitCoupon").addEventListener("click", function () {
-        document.getElementById("couponForm").submit();
+		document.getElementById("submitCompany").addEventListener("click", function () {
+        document.getElementById("companyForm").submit();
 		});
 	</script>
 	<script>
