@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 09, 2025 at 07:42 PM
+-- Generation Time: Apr 13, 2025 at 09:27 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.3
 
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `ecodermart`
+-- Database: `coder`
 --
 
 -- --------------------------------------------------------
@@ -76,8 +76,8 @@ INSERT INTO `banner` (`id`, `bannerName`, `bannerType`) VALUES
 
 CREATE TABLE `basic` (
   `id` int(11) NOT NULL,
-  `compName` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
-  `compName_en` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `compId` int(11) NOT NULL,
+  `description` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `address` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
   `phone` varchar(25) CHARACTER SET utf8mb4 NOT NULL,
   `office_phone` varchar(25) CHARACTER SET utf8mb4 NOT NULL,
@@ -94,13 +94,6 @@ CREATE TABLE `basic` (
   `close_time` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
   `updationDate` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `basic`
---
-
-INSERT INTO `basic` (`id`, `compName`, `compName_en`, `address`, `phone`, `office_phone`, `email`, `logo`, `currency`, `facebook`, `twitter`, `linkedin`, `delivery_method`, `messanger_group`, `whatapps_group`, `open_time`, `close_time`, `updationDate`) VALUES
-(1, 'কোডার মার্ট লিঃ', 'Coder Mart Ltd', '10/A-3, Bardhan Bari, Darus Salam, Mirpur-1, Dhaka.', '01540505646', '01829041699', 'info@ecodermart.com', 'cat_67e300b9436dd7.93628532.jpg', 'cat_67e300b9437ca4.92549314.png', 'F', 'T', 'L', 'DM', 'mg', 'wg', '10', '20', '2025-03-25 19:05:47');
 
 -- --------------------------------------------------------
 
@@ -121,10 +114,10 @@ CREATE TABLE `brands` (
 --
 
 INSERT INTO `brands` (`id`, `brandsName`, `brandsName_en`, `brandsImage`, `postingDate`) VALUES
-(14, 'আফতাব ফুডস্ লিঃ', 'AFTAB Foods Ltd', 'brand_67c9cd79bc3ad5.46473723.jpg', '2025-03-06 16:29:45'),
-(15, 'ইয়োকো ফুডস্ এন্ড এগ্রো লিঃ', 'YOKO Foods & Agro Ltd', 'yoko.jpg', '2025-03-06 16:34:56'),
-(16, 'শেফ ফুডস ইন্ডাস্ট্রিস লিঃ', 'CHEF Foods Industries Ltd', 'chef.jpg', '2025-03-06 16:37:32'),
-(21, 'কোডার মার্ট লিঃ', 'Coder Mart Ltd', 'coder.jpg', '2025-03-06 18:07:12');
+(1, 'আফতাব ফুডস্ লিঃ', 'AFTAB Foods Ltd', 'brand_67c9cd79bc3ad5.46473723.jpg', '2025-03-06 16:29:45'),
+(2, 'ইয়োকো ফুডস্ এন্ড এগ্রো লিঃ', 'YOKO Foods & Agro Ltd', 'yoko.jpg', '2025-03-06 16:34:56'),
+(3, 'শেফ ফুডস ইন্ডাস্ট্রিস লিঃ', 'CHEF Foods Industries Ltd', 'chef.jpg', '2025-03-06 16:37:32'),
+(4, 'কোডার মার্ট লিঃ', 'Coder Mart Ltd', 'coder.jpg', '2025-03-06 18:07:12');
 
 -- --------------------------------------------------------
 
@@ -145,11 +138,11 @@ CREATE TABLE `category` (
 --
 
 INSERT INTO `category` (`id`, `catName`, `catName_en`, `catImage`, `creationDate`) VALUES
-(2, 'ফল এবং হিমায়িত', 'Fruits & Frozen', 'category_67cdbeb3089d99.55568847.jpg', '2025-03-09 16:15:47'),
-(3, 'রান্নার উপকরণ', 'Cooking Ingredients', 'category_67cdc41c8ec2b2.30608349.jpg', '2025-03-09 16:38:52'),
-(4, 'চকোলেট এবং ক্যান্ডি', 'Chocolates & Candy', 'category_67cdc43acdded7.36163599.jpg', '2025-03-09 16:39:22'),
-(5, 'স্ন্যাকস এবং পানীয়', 'Snacks & Beverages', 'category_67cdc4535c4a08.08438858.JPG', '2025-03-09 16:39:47'),
-(7, 'ট্রেডিং পণ্য', 'Trading Products', '', '2025-03-29 18:41:47');
+(1, 'ফল এবং হিমায়িত', 'Fruits & Frozen', 'category_67cdbeb3089d99.55568847.jpg', '2025-03-09 16:15:47'),
+(2, 'রান্নার উপকরণ', 'Cooking Ingredients', 'category_67cdc41c8ec2b2.30608349.jpg', '2025-03-09 16:38:52'),
+(3, 'চকোলেট এবং ক্যান্ডি', 'Chocolates & Candy', 'category_67cdc43acdded7.36163599.jpg', '2025-03-09 16:39:22'),
+(4, 'স্ন্যাকস এবং পানীয়', 'Snacks & Beverages', 'category_67cdc4535c4a08.08438858.JPG', '2025-03-09 16:39:47'),
+(5, 'ট্রেডিং পণ্য', 'Trading Products', 'cat_67f94f94843de3.96066913.jpg', '2025-03-29 18:41:47');
 
 -- --------------------------------------------------------
 
@@ -183,6 +176,32 @@ INSERT INTO `color` (`id`, `colorName`, `colorType`) VALUES
 (13, 'White - সাদা', 'W'),
 (14, 'Black - কালো', 'Bl'),
 (15, 'Red - লাল', 'R');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `company`
+--
+
+CREATE TABLE `company` (
+  `id` int(11) NOT NULL,
+  `companyName` varchar(100) NOT NULL,
+  `companyName_bn` varchar(150) NOT NULL,
+  `status` varchar(3) NOT NULL,
+  `creationDate` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `company`
+--
+
+INSERT INTO `company` (`id`, `companyName`, `companyName_bn`, `status`, `creationDate`) VALUES
+(1, 'Coder Group', 'কোডার গ্রুপ', 'A', '2025-04-11 17:55:02'),
+(2, 'Coder Professional Cooperative Society Ltd', 'কোডার পেশাজীবি সমবায় সমিতি লিঃ', 'A', '2025-04-11 17:59:21'),
+(3, 'Coder Mart', 'কোডার মার্ট', 'A', '2025-04-11 18:00:02'),
+(4, 'Coder Station', 'কোডার স্টেশন', 'A', '2025-04-11 18:01:02'),
+(5, 'Coder Homes & Builders', 'কোডার হোমস এন্ড বিল্ডার্স', 'A', '2025-04-11 18:02:23'),
+(6, 'Coder Hotels & Resorts', 'কোডার হোটেল এন্ড রিসোর্টস', 'A', '2025-04-11 18:04:04');
 
 -- --------------------------------------------------------
 
@@ -801,21 +820,21 @@ CREATE TABLE `subcategory` (
 --
 
 INSERT INTO `subcategory` (`id`, `catId`, `subCatName`, `subCatName_en`, `creationDate`) VALUES
-(46, 3, 'হলুদ', 'Turmeric', '2025-03-29 18:47:53'),
-(47, 3, 'মরিচ', 'Pepper', '2025-03-29 18:48:23'),
-(48, 3, 'ধনিয়া', 'Coriander', '2025-03-29 18:48:46'),
-(49, 3, 'জিরা', 'Cereal', '2025-03-29 18:49:17'),
-(50, 3, 'মসলা', 'Spices', '2025-03-29 18:50:05'),
-(51, 7, 'তেল', 'oil', '2025-03-29 18:51:37'),
-(52, 7, 'সেমাই', 'Vermicelli', '2025-03-29 18:52:17'),
-(53, 7, 'চাল', 'Rice', '2025-03-29 18:53:09'),
-(54, 5, 'চানাচুর', 'Chanachur', '2025-03-29 18:54:30'),
-(55, 5, 'ভাজা', 'Fried', '2025-03-29 18:55:29'),
-(56, 5, 'চিপস', 'Chips', '2025-03-29 18:56:13'),
-(57, 5, 'চাটনী', 'Chutney', '2025-03-29 18:57:05'),
-(58, 5, 'নুডলস', 'Noodles', '2025-03-29 18:57:59'),
-(59, 5, 'মিক্সড', 'Mixed', '2025-03-29 18:58:24'),
-(60, 5, 'ড্রিংক', 'Drink', '2025-03-29 18:59:05');
+(1, 2, 'মসলা', 'Spices', '2025-04-11 14:50:24'),
+(2, 5, 'তেল', 'oil', '2025-04-11 14:50:31'),
+(3, 5, 'সেমাই', 'Vermicelli', '2025-04-11 14:50:35'),
+(4, 5, 'চাল', 'Rice', '2025-04-11 14:50:39'),
+(5, 4, 'চানাচুর', 'Chanachur', '2025-04-11 14:51:05'),
+(6, 4, 'ভাজা', 'Fried', '2025-04-11 14:51:09'),
+(7, 4, 'চিপস', 'Chips', '2025-04-11 14:51:12'),
+(8, 4, 'চাটনী', 'Chutney', '2025-04-11 14:51:20'),
+(9, 5, 'নুডলস', 'Noodles', '2025-04-11 14:51:49'),
+(10, 4, 'মিক্সড', 'Mixed', '2025-04-11 14:51:29'),
+(11, 4, 'ড্রিংক ও জুস', 'Drink and juice', '2025-04-11 14:53:14'),
+(12, 1, 'খেজুর', 'Dates', '2025-04-11 14:55:44'),
+(13, 3, 'চকোলেট', 'Chocolate', '2025-04-11 14:56:55'),
+(14, 4, 'বিস্কুট', 'Biscuit', '2025-04-11 14:57:37'),
+(15, 3, 'আইস ললি / বার', 'Ice Loli / Bar', '2025-04-11 14:58:32');
 
 -- --------------------------------------------------------
 
@@ -898,7 +917,16 @@ INSERT INTO `userlog` (`id`, `userName`, `userEmail`, `password`, `contactNo`, `
 (47, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 12:43:39', NULL, 1),
 (48, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 12:58:18', NULL, 1),
 (49, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 13:01:35', '2025-04-09 23:01:41', 0),
-(50, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 13:01:52', '2025-04-09 23:41:54', 0);
+(50, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-09 13:01:52', '2025-04-09 23:41:54', 0),
+(51, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-11 11:07:52', NULL, 1),
+(52, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-12 11:11:00', '2025-04-12 21:12:07', 0),
+(53, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-12 11:12:13', '2025-04-12 21:24:56', 0),
+(54, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3a3a3100000000000000000000000000, '2025-04-12 11:24:30', '2025-04-12 21:24:45', 0),
+(55, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 11:09:05', '2025-04-13 21:09:26', 0),
+(56, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 11:11:28', '2025-04-13 21:12:07', 0),
+(57, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 11:12:09', '2025-04-13 21:12:12', 0),
+(58, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 11:16:35', NULL, 1),
+(59, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 14:21:22', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -984,6 +1012,12 @@ ALTER TABLE `banner`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `basic`
+--
+ALTER TABLE `basic`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `brands`
 --
 ALTER TABLE `brands`
@@ -999,6 +1033,12 @@ ALTER TABLE `category`
 -- Indexes for table `color`
 --
 ALTER TABLE `color`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `company`
+--
+ALTER TABLE `company`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1120,6 +1160,12 @@ ALTER TABLE `banner`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT for table `basic`
+--
+ALTER TABLE `basic`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- AUTO_INCREMENT for table `brands`
 --
 ALTER TABLE `brands`
@@ -1136,6 +1182,12 @@ ALTER TABLE `category`
 --
 ALTER TABLE `color`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT for table `company`
+--
+ALTER TABLE `company`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `coupon`
@@ -1213,7 +1265,7 @@ ALTER TABLE `supplier`
 -- AUTO_INCREMENT for table `userlog`
 --
 ALTER TABLE `userlog`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT for table `users`
