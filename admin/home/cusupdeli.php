@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../../includes/config.php');
+include('../../config/config.php');
 
 // Check if user is logged in
 if (empty($_SESSION['alogin'])) {

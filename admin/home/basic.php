@@ -1,35 +1,28 @@
 <?php
 session_start();
-include('../../includes/config.php');
+include('../../config/config.php');
 
 if (empty($_SESSION['alogin'])) {
     header('location:index.php');
     exit();
 }
 
-$basicId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$basic = ['compId' => '', 'description' => '', 'address'  => '', 'phone'  => '', 'office_phone'  => '', 'email'  => '', 
-'logo'  => '', 'currency'  => '', 'facebook'  => '', 'twitter'  => '', 'linkedin'  => '', 'open_time'  => '', 'close_time'  => '', 
-'delivery_process'  => '', 'messanger_group' => '', 'whatapps_group' => ''];
+// Forcefully use compId = 2
+$basicId = isset($_GET['compId']) ? intval($_GET['compId']) : 0;
+$imgId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+// Default basic info structure
+$basic = ['compId' => '', 'description' => '', 'address' => '', 'phone' => '', 'office_phone' => '', 'email' => '',
+    'logo' => '', 'currency' => '', 'facebook' => '', 'twitter' => '', 'linkedin' => '', 'open_time' => '', 'close_time' => '',
+    'delivery_method' => '', 'messanger_group' => '', 'whatapps_group' => ''];
 
 function getBasic($con, $basicId) {
-    $stmt = $con->prepare("SELECT * FROM company a LEFT JOIN basic b ON a.id = b.compId WHERE a.id = ?");
+    $stmt = $con->prepare("SELECT * FROM company a INNER JOIN basic b ON a.id = b.compId WHERE a.id = ? AND a.status = 'A'");
     $stmt->bind_param("i", $basicId);
     $stmt->execute();
     $result = $stmt->get_result();
     $stmt->close();
     return $result->fetch_assoc() ?: null;
-}
-
-if ($basicId > 0) {
-    $basicData = getBasic($con, $basicId);
-    if ($basicData) {
-        $basic = $basicData;
-    } else {
-        $_SESSION['msg'] = "Basic not found.";
-        header('Location: basic.php');
-        exit();
-    }
 }
 
 function handleImageUpload($file) {
@@ -40,18 +33,23 @@ function handleImageUpload($file) {
             return [false, "Invalid image format. Only JPG, PNG, and WebP allowed."];
         }
         if ($file['size'] > 2 * 1024 * 1024) {
-            return [false, "File is too large. Max 2MB allowed."];
+            return [false, "File too large. Max 2MB allowed."];
         }
         $imageExtension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        return [true, uniqid("cat_", true) . '.' . $imageExtension];
+        return [true, uniqid("img_", true) . '.' . $imageExtension];
     }
     return [true, null];
 }
 
+// Load data if available
+$basicData = getBasic($con, $basicId);
+if ($basicData) {
+    $basic = $basicData;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	
-    // Sanitize and assign input data, falling back to empty strings where needed
-    $compId = trim($_POST['compId'] ?? '');
+    // Sanitize input
+	$compId = trim($_POST['compId'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $address = trim($_POST['address'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
@@ -63,121 +61,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $open_time = trim($_POST['open_time'] ?? '');
     $close_time = trim($_POST['close_time'] ?? '');
     $delivery_method = trim($_POST['delivery_method'] ?? '');
-	$messanger_group = trim($_POST['messanger_group'] ?? '');
-	$whatapps_group = trim($_POST['whatapps_group'] ?? '');
+    $messanger_group = trim($_POST['messanger_group'] ?? '');
+    $whatapps_group = trim($_POST['whatapps_group'] ?? '');
 
-    // Prevent processing if required fields are missing
-    if (empty($compName) || empty($compName_en)) {
-        $_SESSION['warnmsg'] = "Input Information are required (ইনপুট তথ্য অতি আবশ্যক).";
+    if (empty($address)) {
+        $_SESSION['warnmsg'] = "Address is required.";
         header('Location: basic.php');
         exit();
     }
 
-    // Handle image uploads
     list($logoValid, $newLogoImageName) = handleImageUpload($_FILES['logo']);
     list($currencyValid, $newCurrImageName) = handleImageUpload($_FILES['currency']);
 
-    // If either image upload fails, set appropriate message and exit
     if (!$logoValid || !$currencyValid) {
         $_SESSION['msg'] = !$logoValid ? $newLogoImageName : $newCurrImageName;
         header('Location: basic.php');
         exit();
     }
 
-    // Use existing image names if no new images are uploaded
     $newLogoImageName = $newLogoImageName ?: $basic['logo'];
     $newCurrImageName = $newCurrImageName ?: $basic['currency'];
 
-    if ($basicId > 0) {
-        // Update only if there are changes
-        if (
-			$compId !== $basic['compId'] || 
-			$description !== $basic['description'] || 
-			$address !== $basic['address'] ||
-			$phone !== $basic['phone'] ||
-			$office_phone !== $basic['office_phone'] ||
-			$email !== $basic['email'] ||
-			$newLogoImageName !== $basic['logo'] || 
-			$newCurrImageName !== $basic['currency'] ||
-			$facebook !== $basic['facebook'] ||
-			$twitter !== $basic['twitter'] ||
-			$linkedin !== $basic['linkedin'] ||
-			$open_time !== $basic['open_time'] ||
-			$close_time !== $basic['close_time'] ||
-			$delivery_method !== $basic['delivery_method'] ||
-			$messanger_group !== $basic['messanger_group'] ||
-			$whatapps_group !== $basic['whatapps_group']) {
-				
-            // Prepare the SQL statement
-			$stmt = $con->prepare("UPDATE basic SET compId = ?, description = ?, address = ?, phone = ?, office_phone = ?, 
-			email = ?, logo = ?, currency = ?, facebook = ?, twitter = ?, linkedin = ?, open_time = ?, close_time = ?, 
-			delivery_method = ?, messanger_group = ?, whatapps_group = ? WHERE id = ?");
-
-			if (!$stmt) {
-					die("Prepare failed: Update Column Error" . $con->error); // Debugging: Show MySQL error
-				}
-
-			// Bind parameters
-			$stmt->bind_param(
-				"ssssssssssssssssi",
-				$compId, $description, $address, $phone, $office_phone, $email, 
-				$newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time, 
-				$delivery_method, $messanger_group, $whatapps_group, $basicId
-			);
-
-			// Execute and close
-			if ($stmt->execute()) {
-				// Move the uploaded images if they exist
-				$logoDir = "../logo/$basicId";
-				if (!is_dir($logoDir)) mkdir($logoDir, 0777, true);
-
-				if (!empty($_FILES['logo']['name'])) {
-					move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
-				}
-
-				if (!empty($_FILES['currency']['name'])) {
-					move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
-				}
-
-				$_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
-			} else {
-				$_SESSION['warnmsg'] = "Update failed: " . $stmt->error;
-			}
+    if ($basicData) {
+        // UPDATE
+        $sql = "UPDATE basic SET compId =?, description=?, address=?, phone=?, office_phone=?, email=?, logo=?, currency=?,
+            facebook=?, twitter=?, linkedin=?, open_time=?, close_time=?, delivery_method=?, messanger_group=?, whatapps_group=?
+            WHERE compId = ?";
+			
+		$stmt = $con->prepare($sql);
 		
-            $stmt->close();
-            
-            $_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
-        } else {
-            $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
-        }
-    } else {
-        $stmt = $con->prepare("INSERT INTO company (compId, description, address, phone, office_phone, email, 
-				newLogoImageName, newCurrImageName, facebook, twitter, linkedin, open_time, close_time, 
-				delivery_method, messanger_group, whatapps_group) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		if (!$stmt) {
+			die("Prepare failed: Update Operation Failed" . $con->error);
+		}
 
-        if (!$stmt) {
-            die("Prepare failed: Insert Column Error" . $con->error);
-        }
+        $stmt->bind_param("ssssssssssssssssi", $compId, $description, $address, $phone, $office_phone, $email, $newLogoImageName,
+            $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time, $delivery_method,
+            $messanger_group, $whatapps_group, $basicId);
 
-        $stmt->bind_param("ssssssssssssssss", $compId, $description, $address, $phone, $office_phone, $email, 
-				$newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time, 
-				$delivery_method, $messanger_group, $whatapps_group);
-        
         if ($stmt->execute()) {
-			$basicId = $stmt->insert_id;
-			$dir = "../logo/$basicId";
-            if (!is_dir($dir)) mkdir($dir, 0777, true);
-			if (!empty($_FILES['logo']['name'])) {
-                move_uploaded_file($_FILES['logo']['tmp_name'], "$dir/$newLogoImageName");
+            $logoDir = "../logo/$imgId";
+            if (!is_dir($logoDir)) mkdir($logoDir, 0777, true);
+
+            if (!empty($_FILES['logo']['name'])) {
+                move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
             }
-			if (!empty($_FILES['currency']['name'])) {
-                move_uploaded_file($_FILES['currency']['tmp_name'], "$dir/$newCurrImageName");
+            if (!empty($_FILES['currency']['name'])) {
+                move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
             }
+        } else {
+            $_SESSION['warnmsg'] = "Image Update failed: " . $stmt->error;
+        }
+		// Check for MySQL errors
+		if ($stmt->error) {
+			die("Update Failed For DB" . $stmt->error);
+		}
+
+		// Check affected rows
+		if ($stmt->affected_rows === 0) {
+			$_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
+		}
+		
+        $stmt->close();
+		
+		$_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
+		
+    } else {
+        // INSERT
+        $stmt = $con->prepare("INSERT INTO basic (compId, description, address, phone, office_phone, email, logo, currency,
+            facebook, twitter, linkedin, open_time, close_time, delivery_method, messanger_group, whatapps_group)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmt->bind_param("ssssssssssssssss", $compId, $description, $address, $phone, $office_phone, $email,
+            $newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time,
+            $delivery_method, $messanger_group, $whatapps_group);
+
+        if ($stmt->execute()) {
+			$logoId = $stmt->insert_id;
+            $logoDir = "../logo/$logoId";
+            if (!is_dir($logoDir)) mkdir($logoDir, 0777, true);
+
+            if (!empty($_FILES['logo']['name'])) {
+                move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
+            }
+            if (!empty($_FILES['currency']['name'])) {
+                move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
+            }
+
             $_SESSION['msg'] = "Added Successfully (সফলভাবে সংযুক্ত করা হয়েছে)!";
         } else {
-            $_SESSION['warnmsg'] = "Database error: Operation failed.";
+            $_SESSION['warnmsg'] = "Insert Failed For DB :" . $stmt->error;
         }
-
         $stmt->close();
     }
 
@@ -185,30 +158,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-
-if (isset($_GET['del']) && $basicId > 0) {
-    $product = getBasic($con, $basicId);
-    if ($product) {
-        $stmt = $con->prepare("DELETE FROM basic WHERE id = ?");
-        $stmt->bind_param("i", $basicId);
+// DELETE
+if (isset($_GET['del'])) {
+    $company = getBasic($con, $basicId);
+    if ($company) {
+        $stmt = $con->prepare("DELETE FROM basic WHERE compId = ? and id = ?");
+        $stmt->bind_param("ii", $basicId, $imgId);
         if ($stmt->execute()) {
-            $basicDir = "../logo/$basicId";
-            if (is_dir($productDir)) {
-                array_map('unlink', glob("$basicDir/*"));
-                rmdir($productDir);
+            $dir = "../logo/$imgId";
+            if (is_dir($dir)) {
+                array_map('unlink', glob("$dir/*"));
+                rmdir($dir);
             }
             $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
         } else {
-            $_SESSION['delmsg'] = "Database error: Failed to delete Basic Info.";
+            $_SESSION['delmsg'] = "Delete failed: " . $stmt->error;
         }
         $stmt->close();
     } else {
-        $_SESSION['delmsg'] = "Basic Info not found. Cannot delete.";
+        $_SESSION['delmsg'] = "No data found to delete.";
     }
     header('Location: basic.php');
     exit();
 }
 ?>
+
 
 
 <!DOCTYPE html>
@@ -243,7 +217,7 @@ if (isset($_GET['del']) && $basicId > 0) {
                                     <li class="list-inline-item">Basic (বেসিক) </li>
                                  </ul>
                               </div>
-							  <button id="submitBasic" class="au-btn au-btn-icon au-btn--green"><?php echo $basicId ? 'Update (হালনাগাদ করুন)' : ''; ?></button>
+							  <button id="submitBasic" class="au-btn au-btn-icon au-btn--green"><?php echo $basicId ? 'Update (হালনাগাদ করুন)' : 'Submit (সংরক্ষণ করুন)'; ?></button>
                            </div>
                         </div>
                      </div>
@@ -264,16 +238,18 @@ if (isset($_GET['del']) && $basicId > 0) {
                                     <div class="row">
                                        <div class="col-6">
 											<div class="form-group">
-												<label for="compId" class="form-control-label">Category ( ক্যাটাগরি )</label>
-												<select name="compId" id="compId" class="form-control" onChange="getSubcat(this.value);">
-													<option value="0">Please Select - নির্বাচন করুন</option>
-													<?php 
-													$selectedCompId = $product['compId'] ?? 0;
+												<label for="compId" class="form-control-label">Company Name ( কোম্পানির নাম )</label>
+												<?php
+												$selectedCompId = $basic['compId'] ?? 0;
+												?>
 
+												<select name="compId" id="compId" class="form-control">
+													<option value="0" <?= ($selectedCompId == 0) ? 'selected' : '' ?>>Please Select - নির্বাচন করুন</option>
+													<?php 
 													$query = mysqli_query($con, "SELECT * FROM COMPANY");
 
 													while ($row = mysqli_fetch_array($query)) {
-														$isSelected = ($row['id'] == $selectedCompId) ? 'selected' : '';
+														$isSelected = ($row['id'] == $selectedCompId && $selectedCompId != 0) ? 'selected' : '';
 														echo "<option value='" . htmlentities($row['id']) . "' $isSelected>" 
 															 . htmlentities($row['companyName']) . " - " 
 															 . htmlentities($row['companyName_bn']) . "</option>";
@@ -354,7 +330,7 @@ if (isset($_GET['del']) && $basicId > 0) {
                                           </div>
                                        </div>
                                        <div class="col-6">
-                                          <label for="whatapps_group" class="control-label mb-1">Whatapps Group ( হোয়াটঅ্যাপস গ্রুপ )</label>
+                                          <label for="whatapps_group" class="control-label mb-1">Whatsapp Group ( হোয়াটঅ্যাপ গ্রুপ )</label>
                                           <input id="whatapps_group" name="whatapps_group" type="text" class="form-control whatapps_group valid"  autocomplete="whatapps_group" aria-required="true" aria-invalid="false" aria-describedby="whatapps_group-error"
                                              placeholder="Enter Company Whatapps Group" value="<?php echo htmlentities($basic['whatapps_group']); ?>" required>
                                        </div>
@@ -375,21 +351,21 @@ if (isset($_GET['del']) && $basicId > 0) {
                                     </div>
 									<div class="row">
                                        <div class="col-6">
-                                        <?php if ($basicId && $basic['logo']) { ?>
+                                        <?php if ($imgId && $basic['logo']) { ?>
 											<div class="form-group">
 											<label for="logo" class="control-label mb-1">Current Logo ( বর্তমান লোগো  )</label>
 												<div class="controls">
-													<img src="../logo/<?php echo htmlentities($basicId); ?>/<?php echo htmlentities($basic['logo']); ?>" width="100" height="100">
+													<img src="../logo/<?php echo htmlentities($imgId); ?>/<?php echo htmlentities($basic['logo']); ?>" width="100" height="100">
 												</div>
 											</div>
 										<?php } ?>
                                        </div>
                                        <div class="col-6">
-                                          <?php if ($basicId && $basic['currency']) { ?>
+                                          <?php if ($imgId && $basic['currency']) { ?>
 											<div class="form-group">
 											<label for="currency" class="control-label mb-1">Current Currency ( বর্তমান মুদ্রা  )</label>
 												<div class="controls">
-													<img src="../logo/<?php echo htmlentities($basicId); ?>/<?php echo htmlentities($basic['currency']); ?>" width="20" height="20">
+													<img src="../logo/<?php echo htmlentities($imgId); ?>/<?php echo htmlentities($basic['currency']); ?>" width="20" height="20">
 												</div>
 											</div>
 										<?php } ?>
@@ -437,30 +413,63 @@ if (isset($_GET['del']) && $basicId > 0) {
                                     </thead>
                                  <tbody>
 								 <?php 
-                                        $query = $con->query("SELECT * FROM basic");
-                                        $cnt = 1;
-                                        while ($row = $query->fetch_assoc()) { 
-                                        ?>
-                                    <tr>
-                                       <td><?php echo $cnt++; ?></td>
-									   <td><?php echo htmlentities($row['compName']).' - '.htmlentities($row['compName_en']); ?></td>
-									   <td><img src="../logo/<?php echo $row['id']; ?>/<?php echo htmlentities($row['logo']); ?>" style="max-width: 100px; height: auto;"></td>
-									   <td><?php echo htmlentities($row['address']); ?></td>
-									   <td><?php echo htmlentities($row['phone']).' - '.htmlentities($row['office_phone']); ?></td>
-									   <td><?php echo htmlentities($row['email']); ?></td>
-                                       <td><img src="../logo/<?php echo $row['id']; ?>/<?php echo htmlentities($row['currency']); ?>" width="100" height="100"></td>
-                                       <td><?php echo htmlentities($row['updationDate']); ?></td>
+									$query = $con->query("SELECT * FROM COMPANY a INNER JOIN BASIC b ON a.id = b.compId");
+									$cnt = 1;
+									while ($row = $query->fetch_assoc()) { 
+									?>
+									<tr>
+									   <td><?php echo $cnt++; ?></td>
 									   <td>
-                                        <div class="table-data-feature">
+											<?php 
+											echo isset($row['companyName']) ? htmlentities($row['companyName']) : ''; 
+											echo ' - ';
+											echo isset($row['companyName_bn']) ? htmlentities($row['companyName_bn']) : ''; 
+											?>
+										</td>
+									   <td><?php
+											$imgPath = "../logo/" . $row['id'] . "/" . $row['logo'];
+											$defaultImage = "../logo/no_image.png"; // put your default image here
+
+											if (!empty($row['logo']) && file_exists($imgPath)) {
+												$src = $imgPath;
+											} else {
+												$src = $defaultImage;
+											}
+											?>
+											<img src="<?php echo $src; ?>" style="max-width: 120px; height: auto;">
+									   </td>
+									   <td><?php echo htmlentities($row['address']); ?></td>
+									   <td><?php echo htmlentities($row['phone']) . ' - ' . htmlentities($row['office_phone']); ?></td>
+									   <td><?php echo htmlentities($row['email']); ?></td>
+									   <td><?php
+											$imgPath = "../logo/" . $row['id'] . "/" . $row['currency'];
+											$defaultImage = "../logo/no_image.png"; // put your default image here
+
+											if (!empty($row['currency']) && file_exists($imgPath)) {
+												$src = $imgPath;
+											} else {
+												$src = $defaultImage;
+											}
+											?>
+											<img src="<?php echo $src; ?>" width="75" height="75">
+									   </td>
+									   <td><?php echo htmlentities($row['updationDate']); ?></td>
+									   <td>
+										<div class="table-data-feature">
 											<button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
-												<a href="basic.php?id=<?php echo $row['id']; ?>" style="text-decoration: none; display: flex; align-items: center;">
+												<a href="basic.php?compId=<?php echo $row['compId']; ?>&id=<?php echo $row['id']; ?>" style="text-decoration: none; display: flex; align-items: center;">
 													<i class="zmdi zmdi-edit" style="color:#008000"></i>
 												</a>
 											</button>
-                                        </div>
-                                       </td>
-                                    </tr>
-                                   <?php } ?>
+											<button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
+												<a href="basic.php?compId=<?php echo $row['compId']; ?>&id=<?php echo $row['id']; ?>&del=delete" onClick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
+													<i class="zmdi zmdi-delete" style="color:#FF0000"></i>
+												</a>
+											</button>
+										</div>
+									   </td>
+									</tr>
+								 <?php } ?>
                                  </tbody>
                               </table>
                            </div>

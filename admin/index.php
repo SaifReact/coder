@@ -1,7 +1,7 @@
 <?php
 
 session_start();
-include("../includes/config.php");
+include("../config/config.php");
 
 if (isset($_POST['submit'])) {
     $userName = $_POST['userName'];
@@ -78,7 +78,12 @@ if (isset($_POST['submit'])) {
 				<h3>Sign In</h3>
 			</div>
 			<div class="card-body">
-			<span style="color:red;" ><?php echo htmlentities($_SESSION['errmsg']); ?><?php echo htmlentities($_SESSION['errmsg']="");?></span>
+			<?php
+				if (!empty($_SESSION['errmsg'])) {
+					echo '<span style="color:red;">' . htmlentities($_SESSION['errmsg']) . '</span>';
+					$_SESSION['errmsg'] = ""; // clear it after displaying
+				}
+			?>
 				<form class="form-vertical" method="post">
 					<div class="input-group form-group">
 						<div class="input-group-prepend">

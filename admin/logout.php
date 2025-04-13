@@ -1,9 +1,9 @@
 <?php
 session_start();
-include("../includes/config.php");
+include("../config/config.php");
 
 if (!$con) {
-    die("Database connection failed in logout.php");
+    die("Database connection failed in logout function");
 }
 
 if (!empty($_SESSION['alogin']) && !empty($_SESSION['userlog_id'])) {
