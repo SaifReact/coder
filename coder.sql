@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 13, 2025 at 09:27 PM
+-- Generation Time: Apr 26, 2025 at 08:50 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.3
 
@@ -201,7 +201,8 @@ INSERT INTO `company` (`id`, `companyName`, `companyName_bn`, `status`, `creatio
 (3, 'Coder Mart', 'কোডার মার্ট', 'A', '2025-04-11 18:00:02'),
 (4, 'Coder Station', 'কোডার স্টেশন', 'A', '2025-04-11 18:01:02'),
 (5, 'Coder Homes & Builders', 'কোডার হোমস এন্ড বিল্ডার্স', 'A', '2025-04-11 18:02:23'),
-(6, 'Coder Hotels & Resorts', 'কোডার হোটেল এন্ড রিসোর্টস', 'A', '2025-04-11 18:04:04');
+(6, 'Coder Hotels & Resorts', 'কোডার হোটেল এন্ড রিসোর্টস', 'A', '2025-04-11 18:04:04'),
+(7, 'Coder IT Training Center', 'কোডার আইটি ট্রেনিং সেন্টার', 'I', '2025-04-14 04:37:35');
 
 -- --------------------------------------------------------
 
@@ -211,19 +212,15 @@ INSERT INTO `company` (`id`, `companyName`, `companyName_bn`, `status`, `creatio
 
 CREATE TABLE `coupon` (
   `id` int(11) NOT NULL,
+  `compId` int(11) NOT NULL,
+  `productId` int(11) NOT NULL,
   `couponCode` varchar(100) NOT NULL,
   `cashOff` float NOT NULL,
   `value` float DEFAULT NULL,
+  `cashOffPrice` float NOT NULL,
   `status` varchar(3) NOT NULL,
   `creation_date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `coupon`
---
-
-INSERT INTO `coupon` (`id`, `couponCode`, `cashOff`, `value`, `status`, `creation_date`) VALUES
-(5, 'coupon8.6', 8.6, 0.086, 'A', '2025-03-26 19:49:57');
 
 -- --------------------------------------------------------
 
@@ -663,22 +660,21 @@ INSERT INTO `payment` (`id`, `orderId`, `paymentMethod`, `userId`, `payAmount`, 
 
 CREATE TABLE `policy` (
   `id` int(11) NOT NULL,
+  `compId` int(11) NOT NULL,
   `policyName` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
   `dataToggle` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL,
   `icon` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `updationDate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `description` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` varchar(3) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `creationDate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `policy`
 --
 
-INSERT INTO `policy` (`id`, `policyName`, `dataToggle`, `description`, `icon`, `updationDate`) VALUES
-(1, 'Seller Policy - বিক্রয় নীতি', 'selPolicy', 'Hello', 'fa-file-text', '2025-03-26 15:25:47'),
-(2, 'Return Policy - রিটার্ন পলিসি', 'retPolicy', 'Hi', 'fa-mail-reply', '2025-03-07 11:54:33'),
-(3, 'Support Policy - সমর্থন নীতি', 'supPolicy', 'Bangladesh is our mother land.', 'fa-support', '2025-03-26 15:23:47'),
-(4, 'Coder Profile - কোডার প্রোফাইল', 'codProfile', 'Bangladesh is our Favorite Country.', 'fa-dashboard', '2025-03-26 15:25:59');
+INSERT INTO `policy` (`id`, `compId`, `policyName`, `dataToggle`, `icon`, `description`, `status`, `creationDate`) VALUES
+(2, 3, 'Seller Policy - বিক্রয় নীতি', 'sellPolicy', 'fa-file-text', '<p><strong>Hello</strong> Bangladesh</p>', 'A', '2025-04-26 18:09:47');
 
 -- --------------------------------------------------------
 
@@ -926,7 +922,25 @@ INSERT INTO `userlog` (`id`, `userName`, `userEmail`, `password`, `contactNo`, `
 (56, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 11:11:28', '2025-04-13 21:12:07', 0),
 (57, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 11:12:09', '2025-04-13 21:12:12', 0),
 (58, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 11:16:35', NULL, 1),
-(59, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 14:21:22', NULL, 1);
+(59, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 14:21:22', NULL, 1),
+(60, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-13 23:50:30', '2025-04-15 21:08:48', 0),
+(61, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-15 11:08:52', NULL, 1),
+(62, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-15 13:03:31', '2025-04-15 23:06:10', 0),
+(63, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-15 13:06:11', '2025-04-15 23:06:52', 0),
+(64, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-24 12:03:35', NULL, 1),
+(65, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-24 12:24:43', NULL, 1),
+(66, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-24 12:25:02', NULL, 1),
+(67, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-24 12:27:28', NULL, 1),
+(68, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-24 12:30:42', NULL, 1),
+(69, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-24 12:43:15', NULL, 1),
+(70, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 10:00:12', NULL, 1),
+(71, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 13:48:29', NULL, 1),
+(72, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 14:26:46', NULL, 1),
+(73, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 14:28:30', NULL, 1),
+(74, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 14:37:52', NULL, 1),
+(75, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 14:42:33', NULL, 1),
+(76, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3a3a3100000000000000000000000000, '2025-04-26 14:43:53', NULL, 1),
+(77, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 14:49:48', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -1163,7 +1177,7 @@ ALTER TABLE `banner`
 -- AUTO_INCREMENT for table `basic`
 --
 ALTER TABLE `basic`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `brands`
@@ -1187,13 +1201,13 @@ ALTER TABLE `color`
 -- AUTO_INCREMENT for table `company`
 --
 ALTER TABLE `company`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `coupon`
 --
 ALTER TABLE `coupon`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `customer`
@@ -1229,7 +1243,7 @@ ALTER TABLE `payment`
 -- AUTO_INCREMENT for table `policy`
 --
 ALTER TABLE `policy`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `productreviews`
@@ -1265,7 +1279,7 @@ ALTER TABLE `supplier`
 -- AUTO_INCREMENT for table `userlog`
 --
 ALTER TABLE `userlog`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `users`

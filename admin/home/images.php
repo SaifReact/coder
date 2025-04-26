@@ -1,25 +1,28 @@
 <?php
 session_start();
-include('../../config/config.php');
+require('../../config/config.php');
 
 if (empty($_SESSION['alogin'])) {
-    header('location:index.php');
+    header('Location: index.php');
     exit();
 }
 
 $imageId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$image = ['imgType' => '', 'image'  => '', 'imgName' => '', 'imgDesc'  => '', 'status' => '' ];
+$image = ['imgType' => '', 'image' => '', 'imgName' => '', 'imgDesc' => '', 'status' => ''];
 
-function getImage($con, $imageId) {
-    $stmt = $con->prepare("SELECT im.*, ba.bannerName, ba.bannerType 
+function getPDO(): PDO {
+    global $pdo;
+    return $pdo;
+}
+
+function getImage($imageId) {
+    $pdo = getPDO();
+    $stmt = $pdo->prepare("SELECT im.*, ba.bannerName, ba.bannerType 
                            FROM images im 
                            JOIN banner ba ON ba.bannerType = im.imgType 
                            WHERE im.id = ?");
-    $stmt->bind_param("i", $imageId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-    return $result->fetch_assoc() ?: null;
+    $stmt->execute([$imageId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
 function handleImageUpload($file) {
@@ -38,96 +41,103 @@ function handleImageUpload($file) {
     return [true, null];
 }
 
-if ($imageId > 0) {
-    $imageData = getImage($con, $imageId);
-    if ($imageData) {
-        $image = $imageData;
-    } else {
-        $_SESSION['msg'] = "Image Not Found.";
-        header('Location: images.php');
-        exit();
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $imgType = trim($_POST['imgType'] ?? '');
-    $imgName = trim($_POST['imgName'] ?? '');
-	$imgDesc = trim($_POST['imgDesc'] ?? '');
-	$status = trim($_POST['status'] ?? '');
-
-    // Prevent processing if required fields are missing
-    if (empty($imgName) || empty($imgType)) {
-        $_SESSION['warnmsg'] = "Input Information are required (ইনপুট তথ্য অতি আবশ্যক).";
-        header('Location: images.php');
-        exit();
-    }
-
-    list($valid, $newImageName) = handleImageUpload($_FILES['image']);
-    if (!$valid) {
-        $_SESSION['msg'] = $newImageName;
-        header('Location: images.php');
-        exit();
-    }
-
-    $newImageName = $newImageName ?: $image['image'];
+try {
+    $pdo = getPDO();
 
     if ($imageId > 0) {
-        // Update only if there are changes
-        if ($imgType !== $image['imgType'] || $newImageName !== $image['image'] || $imgName !== $image['imgName'] || $imgDesc !== $image['imgDesc'] || $status !== $image['status'])  {
-            $stmt = $con->prepare("UPDATE images SET imgType = ?, image = ?, imgName = ?, imgDesc = ?, status = ? WHERE id = ?");
-            $stmt->bind_param("sssssi", $imgType, $newImageName, $imgName, $imgDesc, $status, $imageId);
-            $stmt->execute();
-            $stmt->close();
-
-            // Move new image if uploaded
-            if ($_FILES['image']['name']) {
-                $dir = "../images/$imageId";
-                if (!is_dir($dir)) mkdir($dir, 0777, true);
-                move_uploaded_file($_FILES['image']['tmp_name'], "$dir/$newImageName");
-            }
-            $_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
+        $imageData = getImage($imageId);
+        if ($imageData) {
+            $image = $imageData;
         } else {
-            $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি।)";
+            $_SESSION['msg'] = "Image Not Found.";
+            header('Location: images.php');
+            exit();
         }
-    } else {
-        $stmt = $con->prepare("INSERT INTO images (imgType, image, imgName, imgDesc, status) VALUES (?, ?, ?, ?, 'A')");
-        $stmt->bind_param("ssss", $imgType, $newImageName, $imgName, $imgDesc);
-        if ($stmt->execute()) {
-            $imageId = $stmt->insert_id;
-            if ($_FILES['image']['name']) {
-                $dir = "../images/$imageId";
-                if (!is_dir($dir)) mkdir($dir, 0777, true);
-                move_uploaded_file($_FILES['image']['tmp_name'], "$dir/$newImageName");
-            }
-            $_SESSION['msg'] = "Added Successfully (সফলভাবে সংযুক্ত করা হয়েছে)!";
-        } else {
-            $_SESSION['warnmsg'] = "Database error: Operation failed.";
-        }
-        $stmt->close();
     }
-    header('Location: images.php');
-    exit();
-}
 
-if (isset($_GET['del']) && $imageId > 0) {
-    $image = getImage($con, $imageId);
-    if ($image) {
-        $stmt = $con->prepare("DELETE FROM images WHERE id = ?");
-        $stmt->bind_param("i", $imageId);
-        if ($stmt->execute()) {
-            $imgDir = "../images/$imageId";
-            if (is_dir($imgDir)) {
-                array_map('unlink', glob("$imgDir/*"));
-                rmdir($imgDir);
-            }
-            $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
-        } else {
-            $_SESSION['delmsg'] = "Database error: Failed to delete cat.";
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $imgType = trim($_POST['imgType'] ?? '');
+        $imgName = trim($_POST['imgName'] ?? '');
+        $imgDesc = trim($_POST['imgDesc'] ?? '');
+        $status = trim($_POST['status'] ?? '');
+
+        if (empty($imgName) || empty($imgType)) {
+            $_SESSION['warnmsg'] = "Input Information are required (ইনপুট তথ্য অতি আবশ্যক).";
+            header('Location: images.php');
+            exit();
         }
-        $stmt->close();
-    } else {
-        $_SESSION['delmsg'] = "Image not found. Cannot delete.";
+
+        list($valid, $newImageName) = handleImageUpload($_FILES['image']);
+        if (!$valid) {
+            $_SESSION['msg'] = $newImageName;
+            header('Location: images.php');
+            exit();
+        }
+
+        $newImageName = $newImageName ?: $image['image'];
+
+        if ($imageId > 0) {
+            if (
+                $imgType !== $image['imgType'] ||
+                $newImageName !== $image['image'] ||
+                $imgName !== $image['imgName'] ||
+                $imgDesc !== $image['imgDesc'] ||
+                $status !== $image['status']
+            ) {
+                $stmt = $pdo->prepare("UPDATE images SET imgType = ?, image = ?, imgName = ?, imgDesc = ?, status = ? WHERE id = ?");
+                $stmt->execute([$imgType, $newImageName, $imgName, $imgDesc, $status, $imageId]);
+
+                if ($_FILES['image']['name']) {
+                    $dir = "../images/$imageId";
+                    if (!is_dir($dir)) mkdir($dir, 0777, true);
+                    move_uploaded_file($_FILES['image']['tmp_name'], "$dir/$newImageName");
+                }
+
+                $_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
+            } else {
+                $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি।)";
+            }
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO images (imgType, image, imgName, imgDesc, status) VALUES (?, ?, ?, ?, 'A')");
+            if ($stmt->execute([$imgType, $newImageName, $imgName, $imgDesc])) {
+                $imageId = $pdo->lastInsertId();
+                if ($_FILES['image']['name']) {
+                    $dir = "../images/$imageId";
+                    if (!is_dir($dir)) mkdir($dir, 0777, true);
+                    move_uploaded_file($_FILES['image']['tmp_name'], "$dir/$newImageName");
+                }
+                $_SESSION['msg'] = "Added Successfully (সফলভাবে সংযুক্ত করা হয়েছে)!";
+            } else {
+                $_SESSION['warnmsg'] = "Database error: Operation failed.";
+            }
+        }
+
+        header('Location: images.php');
+        exit();
     }
+
+    if (isset($_GET['del']) && $imageId > 0) {
+        $image = getImage($imageId);
+        if ($image) {
+            $stmt = $pdo->prepare("DELETE FROM images WHERE id = ?");
+            if ($stmt->execute([$imageId])) {
+                $imgDir = "../images/$imageId";
+                if (is_dir($imgDir)) {
+                    array_map('unlink', glob("$imgDir/*"));
+                    rmdir($imgDir);
+                }
+                $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
+            } else {
+                $_SESSION['delmsg'] = "Database error: Failed to delete image.";
+            }
+        } else {
+            $_SESSION['delmsg'] = "Image not found. Cannot delete.";
+        }
+        header('Location: images.php');
+        exit();
+    }
+} catch (PDOException $e) {
+    $_SESSION['errormsg'] = "Database error: " . $e->getMessage();
     header('Location: images.php');
     exit();
 }
@@ -144,7 +154,7 @@ if (isset($_GET['del']) && $imageId > 0) {
          <!-- PAGE CONTAINER-->
          <div class="page-container2">
             <!-- HEADER DESKTOP-->
-            <?php include('share/header.php');?>
+            <header class="header-desktop2"> <?php include('share/header.php');?> </header>
             <?php include('share/side-menu.php');?>
             <!-- END HEADER DESKTOP-->
             <!-- BREADCRUMB-->
@@ -186,26 +196,58 @@ if (isset($_GET['del']) && $imageId > 0) {
                                     <div class="row">
 									   <div class="col-6">
 											<div class="form-group">
+												<label for="compId" class="form-control-label">Company Name ( কোম্পানির নাম )</label>
+												<?php
+												$selectedCompId = $basic['compId'] ?? 0;
+
+												echo '<select name="compId" id="compId" class="form-control">';
+												echo '<option value="0"' . ($selectedCompId == 0 ? ' selected' : '') . '>Please Select - নির্বাচন করুন</option>';
+
+												try {
+													$pdo = getPDO(); // Assuming getPDO() returns the PDO connection
+													$stmt = $pdo->query("SELECT id, companyName, companyName_bn FROM company WHERE status = 'A'");
+													while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+														$id = (int)$row['id'];
+														$selected = ($id === (int)$selectedCompId) ? ' selected' : '';
+														$name = htmlentities($row['companyName']);
+														$name_bn = htmlentities($row['companyName_bn']);
+														echo "<option value='{$id}'{$selected}>{$name} - {$name_bn}</option>";
+													}
+												} catch (PDOException $e) {
+													echo '<option value="">Error loading companies</option>';
+												}
+
+												echo '</select>';
+												?>
+											</div>
+										</div>
+									   <div class="col-6">
+											<div class="form-group">
 												<label for="select" class="form-control-label">Image Place ( ছবির স্থান )</label>
 												<select name="imgType" id="imgType" class="form-control">
 													<?php if (!empty($image['id'])) { ?>
-														<option value="<?php echo htmlentities($image['bannerType']); ?>"> 
+														<option value="<?php echo htmlentities($image['bannerType']); ?>">
 															<?php echo htmlentities($image['bannerName']); ?>
 														</option>
 													<?php } else { ?>
-														<option value="0"> Please Select - নির্বাচন করুন</option>
+														<option value="0">Please Select - নির্বাচন করুন</option>
 													<?php } ?>
 
-													<?php 
-													$query = mysqli_query($con, "SELECT * FROM banner");
-													while ($row = mysqli_fetch_assoc($query)) {
-														var_dump($row);
-														echo "<option value='" . htmlentities($row['bannerType']) . "'>". htmlentities($row['bannerName']) . "</option>";
+													<?php
+													try {
+														$pdo = getPDO(); // Assuming getPDO() returns the PDO connection
+														$stmt = $pdo->query("SELECT * FROM banner");
+														while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+															echo "<option value='" . htmlentities($row['bannerType']) . "'>" . htmlentities($row['bannerName']) . "</option>";
+														}
+													} catch (PDOException $e) {
+														echo "<option disabled>Error fetching data</option>";
 													}
 													?>
 												</select>
 											</div>
 										</div>
+
                                        <div class="col-6">
                                           <label for="imgName" class="control-label mb-1">Image Name ( ছবির নাম )</label>
                                              <input id="imgName" name="imgName" type="text" class="form-control imgName valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="imgName"
@@ -213,7 +255,7 @@ if (isset($_GET['del']) && $imageId > 0) {
                                        </div>
 									   <div class="col-6">
                                           <label for="imgDesc" class="control-label mb-1">Description ( বর্ণনা)</label>
-                                             <textarea name="imgDesc" id="imgDesc" rows="5" placeholder="Content..." class="form-control"><?php echo htmlentities($image['imgDesc'] ?? ''); ?></textarea>
+                                             <textarea name="imgDesc" id="imgDesc" rows="2" placeholder="Content..." class="form-control"><?php echo htmlentities($image['imgDesc'] ?? ''); ?></textarea>
                                        </div>
 									   <?php if ($imageId && $image['image']) { ?>
 										<div class="col-6">
@@ -262,35 +304,44 @@ if (isset($_GET['del']) && $imageId > 0) {
                                         </tr>
                                     </thead>
                                  <tbody>
-								 <?php 
-                                        $query = $con->query("SELECT im.*, ba.bannerName, ba.bannerType FROM images im 
-														JOIN banner ba ON ba.bannerType = im.imgType ORDER BY id DESC");
-                                        $cnt = 1;
-                                        while ($row = $query->fetch_assoc()) { 
-                                        ?>
-                                    <tr>
-                                       <td><?php echo $cnt++; ?></td>
-									   <td><?php echo htmlentities($row['imgName']); ?></td>
-									   <td><?php echo htmlentities($row['bannerName']); ?></td>
-                                       <td><img src="../images/<?php echo $row['id']; ?>/<?php echo htmlentities($row['image']); ?>" width="100" height="100"></td>
-									   <td><?php echo htmlentities($row['imgDesc']); ?></td>
-									   <td><?php echo htmlentities($row['status'] == 'A') ? 'Active (সক্রিয়)' : 'Inactive (নিষ্ক্রিয়)'; ?></td>
-									   <td>
-                                        <div class="table-data-feature">
-											<button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
-												<a href="images.php?id=<?php echo $row['id']; ?>" style="text-decoration: none; display: flex; align-items: center;">
-													<i class="zmdi zmdi-edit" style="color:#008000"></i>
-												</a>
-											</button>
-											<button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
-												<a href="images.php?id=<?php echo $row['id']; ?>&del=delete" onClick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
-													<i class="zmdi zmdi-delete" style="color:#FF0000"></i>
-												</a>
-											</button>
-                                        </div>
-                                       </td>
-                                    </tr>
-                                   <?php } ?>
+								 <?php
+									try {
+										$pdo = getPDO(); // Assuming getPDO() returns the PDO connection
+										$stmt = $pdo->query("SELECT im.*, ba.bannerName, ba.bannerType FROM images im 
+															 JOIN banner ba ON ba.bannerType = im.imgType ORDER BY id DESC");
+
+										$cnt = 1;
+										while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+									?>
+											<tr>
+												<td><?php echo $cnt++; ?></td>
+												<td><?php echo htmlentities($row['imgName']); ?></td>
+												<td><?php echo htmlentities($row['bannerName']); ?></td>
+												<td><img src="../images/<?php echo $row['id']; ?>/<?php echo htmlentities($row['image']); ?>" width="100" height="100"></td>
+												<td><?php echo htmlentities($row['imgDesc']); ?></td>
+												<td><?php echo htmlentities($row['status'] == 'A') ? 'Active (সক্রিয়)' : 'Inactive (নিষ্ক্রিয়)'; ?></td>
+												<td>
+													<div class="table-data-feature">
+														<button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
+															<a href="images.php?id=<?php echo $row['id']; ?>" style="text-decoration: none; display: flex; align-items: center;">
+																<i class="zmdi zmdi-edit" style="color:#008000"></i>
+															</a>
+														</button>
+														<button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
+															<a href="images.php?id=<?php echo $row['id']; ?>&del=delete" onClick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
+																<i class="zmdi zmdi-delete" style="color:#FF0000"></i>
+															</a>
+														</button>
+													</div>
+												</td>
+											</tr>
+									<?php
+										}
+									} catch (PDOException $e) {
+										echo "Error: " . $e->getMessage();
+									}
+									?>
+
                                  </tbody>
                               </table>
                            </div>
@@ -329,3 +380,4 @@ if (isset($_GET['del']) && $imageId > 0) {
 	</script>
 
    </body>
+   </html>

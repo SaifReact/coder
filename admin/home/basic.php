@@ -1,31 +1,31 @@
 <?php
 session_start();
-include('../../config/config.php');
+require('../../config/config.php');
 
 if (empty($_SESSION['alogin'])) {
-    header('location:index.php');
+    header('Location: index.php');
     exit();
 }
 
-// Forcefully use compId = 2
 $basicId = isset($_GET['compId']) ? intval($_GET['compId']) : 0;
 $imgId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Default basic info structure
-$basic = ['compId' => '', 'description' => '', 'address' => '', 'phone' => '', 'office_phone' => '', 'email' => '',
+$basic = [
+    'compId' => '', 'description' => '', 'address' => '', 'phone' => '', 'office_phone' => '', 'email' => '',
     'logo' => '', 'currency' => '', 'facebook' => '', 'twitter' => '', 'linkedin' => '', 'open_time' => '', 'close_time' => '',
-    'delivery_method' => '', 'messanger_group' => '', 'whatapps_group' => ''];
+    'delivery_method' => '', 'messanger_group' => '', 'whatapps_group' => ''
+];
 
-function getBasic($con, $basicId) {
-    $stmt = $con->prepare("SELECT * FROM company a INNER JOIN basic b ON a.id = b.compId WHERE a.id = ? AND a.status = 'A'");
-    $stmt->bind_param("i", $basicId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-    return $result->fetch_assoc() ?: null;
+function getBasic(PDO $pdo, int $basicId): ?array {
+    $sql = "SELECT * FROM company a 
+            INNER JOIN basic b ON a.id = b.compId 
+            WHERE a.id = :id AND a.status = 'A'";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['id' => $basicId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
-function handleImageUpload($file) {
+function handleImageUpload(array $file): array {
     $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!empty($file['name'])) {
         $imageType = mime_content_type($file['tmp_name']);
@@ -35,123 +35,107 @@ function handleImageUpload($file) {
         if ($file['size'] > 2 * 1024 * 1024) {
             return [false, "File too large. Max 2MB allowed."];
         }
-        $imageExtension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        return [true, uniqid("img_", true) . '.' . $imageExtension];
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        return [true, uniqid("img_", true) . '.' . $ext];
     }
     return [true, null];
 }
 
-// Load data if available
-$basicData = getBasic($con, $basicId);
+// Load existing data if available
+$basicData = getBasic($pdo, $basicId);
 if ($basicData) {
     $basic = $basicData;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Sanitize input
-	$compId = trim($_POST['compId'] ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $address = trim($_POST['address'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
-    $office_phone = trim($_POST['office_phone'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $facebook = trim($_POST['facebook'] ?? '');
-    $twitter = trim($_POST['twitter'] ?? '');
-    $linkedin = trim($_POST['linkedin'] ?? '');
-    $open_time = trim($_POST['open_time'] ?? '');
-    $close_time = trim($_POST['close_time'] ?? '');
-    $delivery_method = trim($_POST['delivery_method'] ?? '');
-    $messanger_group = trim($_POST['messanger_group'] ?? '');
-    $whatapps_group = trim($_POST['whatapps_group'] ?? '');
+    try {
+        $compId = trim($_POST['compId'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $address = trim($_POST['address'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        $office_phone = trim($_POST['office_phone'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $facebook = trim($_POST['facebook'] ?? '');
+        $twitter = trim($_POST['twitter'] ?? '');
+        $linkedin = trim($_POST['linkedin'] ?? '');
+        $open_time = trim($_POST['open_time'] ?? '');
+        $close_time = trim($_POST['close_time'] ?? '');
+        $delivery_method = trim($_POST['delivery_method'] ?? '');
+        $messanger_group = trim($_POST['messanger_group'] ?? '');
+        $whatapps_group = trim($_POST['whatapps_group'] ?? '');
 
-    if (empty($address)) {
-        $_SESSION['warnmsg'] = "Address is required.";
-        header('Location: basic.php');
-        exit();
-    }
+        if (empty($address)) {
+            $_SESSION['warnmsg'] = "Address is required.";
+            header('Location: basic.php');
+            exit();
+        }
 
-    list($logoValid, $newLogoImageName) = handleImageUpload($_FILES['logo']);
-    list($currencyValid, $newCurrImageName) = handleImageUpload($_FILES['currency']);
+        [$logoValid, $newLogoImageName] = handleImageUpload($_FILES['logo']);
+        [$currencyValid, $newCurrImageName] = handleImageUpload($_FILES['currency']);
 
-    if (!$logoValid || !$currencyValid) {
-        $_SESSION['msg'] = !$logoValid ? $newLogoImageName : $newCurrImageName;
-        header('Location: basic.php');
-        exit();
-    }
+        if (!$logoValid || !$currencyValid) {
+            $_SESSION['msg'] = !$logoValid ? $newLogoImageName : $newCurrImageName;
+            header('Location: basic.php');
+            exit();
+        }
 
-    $newLogoImageName = $newLogoImageName ?: $basic['logo'];
-    $newCurrImageName = $newCurrImageName ?: $basic['currency'];
+        $newLogoImageName = $newLogoImageName ?: $basic['logo'];
+        $newCurrImageName = $newCurrImageName ?: $basic['currency'];
 
-    if ($basicData) {
-        // UPDATE
-        $sql = "UPDATE basic SET compId =?, description=?, address=?, phone=?, office_phone=?, email=?, logo=?, currency=?,
-            facebook=?, twitter=?, linkedin=?, open_time=?, close_time=?, delivery_method=?, messanger_group=?, whatapps_group=?
-            WHERE compId = ?";
-			
-		$stmt = $con->prepare($sql);
-		
-		if (!$stmt) {
-			die("Prepare failed: Update Operation Failed" . $con->error);
-		}
+        if ($basicData) {
+            // UPDATE
+            $sql = "UPDATE basic SET compId = :compId, description = :description, address = :address,
+                    phone = :phone, office_phone = :office_phone, email = :email, logo = :logo,
+                    currency = :currency, facebook = :facebook, twitter = :twitter, linkedin = :linkedin,
+                    open_time = :open_time, close_time = :close_time, delivery_method = :delivery_method,
+                    messanger_group = :messanger_group, whatapps_group = :whatapps_group
+                    WHERE compId = :basicId";
 
-        $stmt->bind_param("ssssssssssssssssi", $compId, $description, $address, $phone, $office_phone, $email, $newLogoImageName,
-            $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time, $delivery_method,
-            $messanger_group, $whatapps_group, $basicId);
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                'compId' => $compId, 'description' => $description, 'address' => $address,
+                'phone' => $phone, 'office_phone' => $office_phone, 'email' => $email,
+                'logo' => $newLogoImageName, 'currency' => $newCurrImageName, 'facebook' => $facebook,
+                'twitter' => $twitter, 'linkedin' => $linkedin, 'open_time' => $open_time,
+                'close_time' => $close_time, 'delivery_method' => $delivery_method,
+                'messanger_group' => $messanger_group, 'whatapps_group' => $whatapps_group,
+                'basicId' => $basicId
+            ]);
 
-        if ($stmt->execute()) {
             $logoDir = "../logo/$imgId";
             if (!is_dir($logoDir)) mkdir($logoDir, 0777, true);
+            if (!empty($_FILES['logo']['name'])) move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
+            if (!empty($_FILES['currency']['name'])) move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
 
-            if (!empty($_FILES['logo']['name'])) {
-                move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
-            }
-            if (!empty($_FILES['currency']['name'])) {
-                move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
-            }
+            $_SESSION['msg'] = $stmt->rowCount() ? "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!" : "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
         } else {
-            $_SESSION['warnmsg'] = "Image Update failed: " . $stmt->error;
-        }
-		// Check for MySQL errors
-		if ($stmt->error) {
-			die("Update Failed For DB" . $stmt->error);
-		}
+            // INSERT
+            $sql = "INSERT INTO basic (compId, description, address, phone, office_phone, email, logo, currency,
+                    facebook, twitter, linkedin, open_time, close_time, delivery_method, messanger_group, whatapps_group)
+                    VALUES (:compId, :description, :address, :phone, :office_phone, :email, :logo, :currency,
+                    :facebook, :twitter, :linkedin, :open_time, :close_time, :delivery_method, :messanger_group, :whatapps_group)";
 
-		// Check affected rows
-		if ($stmt->affected_rows === 0) {
-			$_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
-		}
-		
-        $stmt->close();
-		
-		$_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
-		
-    } else {
-        // INSERT
-        $stmt = $con->prepare("INSERT INTO basic (compId, description, address, phone, office_phone, email, logo, currency,
-            facebook, twitter, linkedin, open_time, close_time, delivery_method, messanger_group, whatapps_group)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                'compId' => $compId, 'description' => $description, 'address' => $address,
+                'phone' => $phone, 'office_phone' => $office_phone, 'email' => $email,
+                'logo' => $newLogoImageName, 'currency' => $newCurrImageName, 'facebook' => $facebook,
+                'twitter' => $twitter, 'linkedin' => $linkedin, 'open_time' => $open_time,
+                'close_time' => $close_time, 'delivery_method' => $delivery_method,
+                'messanger_group' => $messanger_group, 'whatapps_group' => $whatapps_group
+            ]);
 
-        $stmt->bind_param("ssssssssssssssss", $compId, $description, $address, $phone, $office_phone, $email,
-            $newLogoImageName, $newCurrImageName, $facebook, $twitter, $linkedin, $open_time, $close_time,
-            $delivery_method, $messanger_group, $whatapps_group);
-
-        if ($stmt->execute()) {
-			$logoId = $stmt->insert_id;
-            $logoDir = "../logo/$logoId";
+            $insertId = $pdo->lastInsertId();
+            $logoDir = "../logo/$insertId";
             if (!is_dir($logoDir)) mkdir($logoDir, 0777, true);
-
-            if (!empty($_FILES['logo']['name'])) {
-                move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
-            }
-            if (!empty($_FILES['currency']['name'])) {
-                move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
-            }
+            if (!empty($_FILES['logo']['name'])) move_uploaded_file($_FILES['logo']['tmp_name'], "$logoDir/$newLogoImageName");
+            if (!empty($_FILES['currency']['name'])) move_uploaded_file($_FILES['currency']['tmp_name'], "$logoDir/$newCurrImageName");
 
             $_SESSION['msg'] = "Added Successfully (সফলভাবে সংযুক্ত করা হয়েছে)!";
-        } else {
-            $_SESSION['warnmsg'] = "Insert Failed For DB :" . $stmt->error;
         }
-        $stmt->close();
+
+    } catch (PDOException $e) {
+        $_SESSION['warnmsg'] = "Database Error: " . $e->getMessage();
     }
 
     header('Location: basic.php');
@@ -160,30 +144,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // DELETE
 if (isset($_GET['del'])) {
-    $company = getBasic($con, $basicId);
-    if ($company) {
-        $stmt = $con->prepare("DELETE FROM basic WHERE compId = ? and id = ?");
-        $stmt->bind_param("ii", $basicId, $imgId);
-        if ($stmt->execute()) {
-            $dir = "../logo/$imgId";
-            if (is_dir($dir)) {
-                array_map('unlink', glob("$dir/*"));
-                rmdir($dir);
+    try {
+        $company = getBasic($pdo, $basicId);
+        if ($company) {
+            $stmt = $pdo->prepare("DELETE FROM basic WHERE compId = :compId AND id = :id");
+            $stmt->execute(['compId' => $basicId, 'id' => $imgId]);
+            if ($stmt->rowCount()) {
+                $dir = "../logo/$imgId";
+                if (is_dir($dir)) {
+                    array_map('unlink', glob("$dir/*"));
+                    rmdir($dir);
+                }
+                $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
+            } else {
+                $_SESSION['delmsg'] = "No data found to delete.";
             }
-            $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
         } else {
-            $_SESSION['delmsg'] = "Delete failed: " . $stmt->error;
+            $_SESSION['delmsg'] = "Company not found.";
         }
-        $stmt->close();
-    } else {
-        $_SESSION['delmsg'] = "No data found to delete.";
+    } catch (PDOException $e) {
+        $_SESSION['delmsg'] = "Delete Failed: " . $e->getMessage();
     }
+
     header('Location: basic.php');
     exit();
 }
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -196,7 +182,7 @@ if (isset($_GET['del'])) {
          <!-- PAGE CONTAINER-->
          <div class="page-container2">
             <!-- HEADER DESKTOP-->
-            <?php include('share/header.php');?>
+            <header class="header-desktop2"> <?php include('share/header.php');?> </header>
             <?php include('share/side-menu.php');?>
             <!-- END HEADER DESKTOP-->
             <!-- BREADCRUMB-->
@@ -236,28 +222,33 @@ if (isset($_GET['del'])) {
                               <div class="card-body">
                                  <form id="basicForm" action="" method="post" enctype="multipart/form-data" novalidate="novalidate">
                                     <div class="row">
-                                       <div class="col-6">
+										<div class="col-6">
 											<div class="form-group">
 												<label for="compId" class="form-control-label">Company Name ( কোম্পানির নাম )</label>
 												<?php
 												$selectedCompId = $basic['compId'] ?? 0;
-												?>
 
-												<select name="compId" id="compId" class="form-control">
-													<option value="0" <?= ($selectedCompId == 0) ? 'selected' : '' ?>>Please Select - নির্বাচন করুন</option>
-													<?php 
-													$query = mysqli_query($con, "SELECT * FROM COMPANY");
+												echo '<select name="compId" id="compId" class="form-control">';
+												echo '<option value="0"' . ($selectedCompId == 0 ? ' selected' : '') . '>Please Select - নির্বাচন করুন</option>';
 
-													while ($row = mysqli_fetch_array($query)) {
-														$isSelected = ($row['id'] == $selectedCompId && $selectedCompId != 0) ? 'selected' : '';
-														echo "<option value='" . htmlentities($row['id']) . "' $isSelected>" 
-															 . htmlentities($row['companyName']) . " - " 
-															 . htmlentities($row['companyName_bn']) . "</option>";
+												try {
+													$stmt = $pdo->query("SELECT id, companyName, companyName_bn FROM company WHERE status = 'A'");
+													while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+														$id = (int)$row['id'];
+														$selected = ($id === (int)$selectedCompId) ? ' selected' : '';
+														$name = htmlentities($row['companyName']);
+														$name_bn = htmlentities($row['companyName_bn']);
+														echo "<option value='{$id}'{$selected}>{$name} - {$name_bn}</option>";
 													}
-													?>
-												</select>
+												} catch (PDOException $e) {
+													echo '<option value="">Error loading companies</option>';
+												}
+
+												echo '</select>';
+												?>
 											</div>
 										</div>
+
 										<div class="col-6">
                                           <div class="form-group">
                                              <label for="address" class="control-label mb-1">Address ( ঠিকানা)</label>
@@ -412,64 +403,59 @@ if (isset($_GET['del'])) {
                                         </tr>
                                     </thead>
                                  <tbody>
-								 <?php 
-									$query = $con->query("SELECT * FROM COMPANY a INNER JOIN BASIC b ON a.id = b.compId");
-									$cnt = 1;
-									while ($row = $query->fetch_assoc()) { 
+								 <?php
+									try {
+										$stmt = $pdo->query("SELECT * FROM COMPANY a INNER JOIN BASIC b ON a.id = b.compId");
+										$cnt = 1;
+										while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+											$companyName = htmlentities($row['companyName'] ?? '');
+											$companyNameBn = htmlentities($row['companyName_bn'] ?? '');
+											$address = htmlentities($row['address'] ?? '');
+											$phone = htmlentities($row['phone'] ?? '');
+											$officePhone = htmlentities($row['office_phone'] ?? '');
+											$email = htmlentities($row['email'] ?? '');
+											$updationDate = htmlentities($row['updationDate'] ?? '');
+											$compId = (int)$row['compId'];
+											$id = (int)$row['id'];
+
+											$logoPath = "../logo/{$id}/" . $row['logo'];
+											$currencyPath = "../logo/{$id}/" . $row['currency'];
+											$defaultImage = "../logo/no_image.png";
+
+											$logoSrc = (!empty($row['logo']) && file_exists($logoPath)) ? $logoPath : $defaultImage;
+											$currencySrc = (!empty($row['currency']) && file_exists($currencyPath)) ? $currencyPath : $defaultImage;
 									?>
-									<tr>
-									   <td><?php echo $cnt++; ?></td>
-									   <td>
-											<?php 
-											echo isset($row['companyName']) ? htmlentities($row['companyName']) : ''; 
-											echo ' - ';
-											echo isset($row['companyName_bn']) ? htmlentities($row['companyName_bn']) : ''; 
-											?>
-										</td>
-									   <td><?php
-											$imgPath = "../logo/" . $row['id'] . "/" . $row['logo'];
-											$defaultImage = "../logo/no_image.png"; // put your default image here
+										<tr>
+											<td><?= $cnt++; ?></td>
+											<td><?= $companyName ?> - <?= $companyNameBn ?></td>
+											<td><img src="<?= $logoSrc ?>" style="max-width: 120px; height: auto;"></td>
+											<td><?= $address ?></td>
+											<td><?= $phone ?> - <?= $officePhone ?></td>
+											<td><?= $email ?></td>
+											<td><img src="<?= $currencySrc ?>" width="75" height="75"></td>
+											<td><?= $updationDate ?></td>
+											<td>
+												<div class="table-data-feature">
+													<button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
+														<a href="basic.php?compId=<?= $compId ?>&id=<?= $id ?>" style="text-decoration: none; display: flex; align-items: center;">
+															<i class="zmdi zmdi-edit" style="color:#008000"></i>
+														</a>
+													</button>
+													<button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
+														<a href="basic.php?compId=<?= $compId ?>&id=<?= $id ?>&del=delete" onclick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
+															<i class="zmdi zmdi-delete" style="color:#FF0000"></i>
+														</a>
+													</button>
+												</div>
+											</td>
+										</tr>
+									<?php
+										}
+									} catch (PDOException $e) {
+										echo "<tr><td colspan='9'>Error loading data: " . htmlentities($e->getMessage()) . "</td></tr>";
+									}
+									?>
 
-											if (!empty($row['logo']) && file_exists($imgPath)) {
-												$src = $imgPath;
-											} else {
-												$src = $defaultImage;
-											}
-											?>
-											<img src="<?php echo $src; ?>" style="max-width: 120px; height: auto;">
-									   </td>
-									   <td><?php echo htmlentities($row['address']); ?></td>
-									   <td><?php echo htmlentities($row['phone']) . ' - ' . htmlentities($row['office_phone']); ?></td>
-									   <td><?php echo htmlentities($row['email']); ?></td>
-									   <td><?php
-											$imgPath = "../logo/" . $row['id'] . "/" . $row['currency'];
-											$defaultImage = "../logo/no_image.png"; // put your default image here
-
-											if (!empty($row['currency']) && file_exists($imgPath)) {
-												$src = $imgPath;
-											} else {
-												$src = $defaultImage;
-											}
-											?>
-											<img src="<?php echo $src; ?>" width="75" height="75">
-									   </td>
-									   <td><?php echo htmlentities($row['updationDate']); ?></td>
-									   <td>
-										<div class="table-data-feature">
-											<button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
-												<a href="basic.php?compId=<?php echo $row['compId']; ?>&id=<?php echo $row['id']; ?>" style="text-decoration: none; display: flex; align-items: center;">
-													<i class="zmdi zmdi-edit" style="color:#008000"></i>
-												</a>
-											</button>
-											<button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
-												<a href="basic.php?compId=<?php echo $row['compId']; ?>&id=<?php echo $row['id']; ?>&del=delete" onClick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
-													<i class="zmdi zmdi-delete" style="color:#FF0000"></i>
-												</a>
-											</button>
-										</div>
-									   </td>
-									</tr>
-								 <?php } ?>
                                  </tbody>
                               </table>
                            </div>
@@ -508,3 +494,4 @@ if (isset($_GET['del'])) {
 	</script>
 
    </body>
+   </html>

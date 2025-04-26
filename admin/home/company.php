@@ -10,17 +10,15 @@ if (empty($_SESSION['alogin'])) {
 $companyId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $company = ['companyName' => '', 'companyName_bn'  => '', 'status' => '' ];
 
-function getCompany($con, $companyId) {
-    $stmt = $con->prepare("SELECT * FROM company WHERE id = ?");
-    $stmt->bind_param("i", $companyId);
+function getCompany($pdo, $companyId) {
+    $stmt = $pdo->prepare("SELECT * FROM company WHERE id = :id");
+    $stmt->bindParam(':id', $companyId, PDO::PARAM_INT);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-    return $result->fetch_assoc() ?: null;
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
 if ($companyId > 0) {
-    $companyData = getCompany($con, $companyId);
+    $companyData = getCompany($pdo, $companyId);
     if ($companyData) {
         $company = $companyData;
     } else {
@@ -31,69 +29,66 @@ if ($companyId > 0) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	
     $companyName = trim($_POST['companyName'] ?? '');
-	$companyName_bn = trim($_POST['companyName_bn'] ?? '');
+    $companyName_bn = trim($_POST['companyName_bn'] ?? '');
     $status = trim($_POST['status'] ?? 'A'); // Set default status to 'A' if not provided
 
-     // Prevent processing if required fields are missing
+    // Prevent processing if required fields are missing
     if (empty($companyName) || empty($companyName_bn)) {
         $_SESSION['warnmsg'] = "Input Information are required (ইনপুট তথ্য অতি আবশ্যক).";
         header('Location: company.php');
         exit();
     }
 
-    if ($companyId > 0) {
-        // Update only if there are changes
-        if ($companyName !== $company['companyName'] || $companyName_bn !== $company['companyName_bn'] || $status !== $company['status']) {
-            $stmt = $con->prepare("UPDATE company SET companyName = ?, companyName_bn = ?, status = ? WHERE id = ?");
-            
-            if (!$stmt) {
-                die("Prepare failed: Update Column Error" . $con->error); // Debugging: Show MySQL error
+    try {
+        if ($companyId > 0) {
+            // Update only if there are changes
+            if ($companyName !== $company['companyName'] || $companyName_bn !== $company['companyName_bn'] || $status !== $company['status']) {
+                $stmt = $pdo->prepare("UPDATE company SET companyName = :companyName, companyName_bn = :companyName_bn, status = :status WHERE id = :id");
+                $stmt->bindParam(':companyName', $companyName);
+                $stmt->bindParam(':companyName_bn', $companyName_bn);
+                $stmt->bindParam(':status', $status);
+                $stmt->bindParam(':id', $companyId, PDO::PARAM_INT);
+                $stmt->execute();
+
+                $_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
+            } else {
+                $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
             }
-
-            $stmt->bind_param("sssi", $companyName, $companyName_bn, $status, $companyId);
-            $stmt->execute();
-            $stmt->close();
-            
-            $_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
         } else {
-            $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
-        }
-    } else {
-        $stmt = $con->prepare("INSERT INTO company (companyName, companyName_bn, status) VALUES (?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO company (companyName, companyName_bn, status) VALUES (:companyName, :companyName_bn, :status)");
+            $stmt->bindParam(':companyName', $companyName);
+            $stmt->bindParam(':companyName_bn', $companyName_bn);
+            $stmt->bindParam(':status', $status);
 
-        if (!$stmt) {
-            die("Prepare failed: Insert Column Error" . $con->error);
+            if ($stmt->execute()) {
+                $_SESSION['msg'] = "Added Successfully (সফলভাবে সংযুক্ত করা হয়েছে)!";
+            } else {
+                $_SESSION['warnmsg'] = "Database error: Operation failed.";
+            }
         }
-
-        $stmt->bind_param("sss", $companyName, $companyName_bn, $status,);
-        
-        if ($stmt->execute()) {
-            $_SESSION['msg'] = "Added Successfully (সফলভাবে সংযুক্ত করা হয়েছে)!";
-        } else {
-            $_SESSION['warnmsg'] = "Database error: Operation failed.";
-        }
-
-        $stmt->close();
+    } catch (PDOException $e) {
+        $_SESSION['warnmsg'] = "Database error: " . $e->getMessage();
     }
 
     header('Location: company.php');
     exit();
 }
 
-
 if (isset($_GET['del']) && $companyId > 0) {
-    $coupon = getCompany($con, $companyId);
-    if ($coupon) {
-        $stmt = $con->prepare("DELETE FROM company WHERE id = ?");
-        $stmt->bind_param("i", $companyId);
-        if ($stmt->execute()) {
-            $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
-        } else {
-            $_SESSION['delmsg'] = "Database error: Failed to delete cat.";
+    $company = getCompany($pdo, $companyId);
+    if ($company) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM company WHERE id = :id");
+            $stmt->bindParam(':id', $companyId, PDO::PARAM_INT);
+            if ($stmt->execute()) {
+                $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
+            } else {
+                $_SESSION['delmsg'] = "Database error: Failed to delete company.";
+            }
+        } catch (PDOException $e) {
+            $_SESSION['delmsg'] = "Database error: " . $e->getMessage();
         }
-        $stmt->close();
     } else {
         $_SESSION['delmsg'] = "Company not found. Cannot delete.";
     }
@@ -104,17 +99,17 @@ if (isset($_GET['del']) && $companyId > 0) {
 
 <!DOCTYPE html>
 <html lang="en">
-   <?php include('share/head.php');?>
+   <?php include('share/head.php'); ?>
    <body class="animsition">
       <div class="page-wrapper">
          <!-- MENU SIDEBAR-->
-         <?php include('share/menu.php');?>
+         <?php include('share/menu.php'); ?>
          <!-- END MENU SIDEBAR-->
          <!-- PAGE CONTAINER-->
          <div class="page-container2">
             <!-- HEADER DESKTOP-->
-            <?php include('share/header.php');?>
-            <?php include('share/side-menu.php');?>
+			<header class="header-desktop2"> <?php include('share/header.php');?> </header> <?php include('share/side-menu.php');?>
+            <?php include('share/side-menu.php'); ?>
             <!-- END HEADER DESKTOP-->
             <!-- BREADCRUMB-->
             <section class="au-breadcrumb m-t-75">
@@ -134,7 +129,7 @@ if (isset($_GET['del']) && $companyId > 0) {
                                     <li class="list-inline-item">Company (কোম্পানি) </li>
                                  </ul>
                               </div>
-							  <button id="submitCompany" class="au-btn au-btn-icon au-btn--green"><?php echo $companyId ? 'Update (হালনাগাদ করুন)' : 'Submit (সংরক্ষণ করুন)'; ?></button>
+                              <button id="submitCompany" class="au-btn au-btn-icon au-btn--green"><?php echo $companyId ? 'Update (হালনাগাদ করুন)' : 'Submit (সংরক্ষণ করুন)'; ?></button>
                            </div>
                         </div>
                      </div>
@@ -195,14 +190,14 @@ if (isset($_GET['del']) && $companyId > 0) {
                                     </thead>
                                  <tbody>
 								 <?php 
-                                        $query = $con->query("SELECT * FROM company ORDER BY id DESC");
+                                        $query = $pdo->query("SELECT * FROM company ORDER BY id DESC");
                                         $cnt = 1;
-                                        while ($row = $query->fetch_assoc()) { 
+                                        while ($row = $query->fetch(PDO::FETCH_ASSOC)) { 
                                         ?>
                                     <tr>
                                        <td><?php echo $cnt++; ?></td>
 									   <td><?php echo htmlentities($row['companyName']).' - '.htmlentities($row['companyName_bn']); ?></td>
-									   <td><?php echo htmlentities($row['status'] == 'A') ? 'Active (সক্রিয়)' : 'Inactive (নিষ্ক্রিয়)'; ?></td>
+									   <td><?php echo ($row['status'] == 'A') ? 'Active (সক্রিয়)' : 'Inactive (নিষ্ক্রিয়)'; ?></td>
 									   <td><?php echo htmlentities($row['creationDate']); ?></td>
 									   <td>
                                         <div class="table-data-feature">
@@ -256,5 +251,5 @@ if (isset($_GET['del']) && $companyId > 0) {
 			<?php } ?>
 		});
 	</script>
-
    </body>
+</html>

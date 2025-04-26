@@ -1,0 +1,12 @@
+RewriteEngine On
+RewriteBase /coder/admin/home/
+
+# If the request is not a real file or directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Rewrite to .php file
+RewriteRule ^(.+)$ $1.php [L]
+
+
+

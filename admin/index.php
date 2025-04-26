@@ -1,66 +1,57 @@
 <?php
-
 session_start();
-include("../config/config.php");
+include("../config/config.php"); // Assumes $pdo is created in this file using PDO
 
 if (isset($_POST['submit'])) {
     $userName = $_POST['userName'];
-    $password = md5($_POST['password']); // Hash password
-    $userIp = $_SERVER['REMOTE_ADDR']; // Get User IP
+    $password = md5($_POST['password']); // Consider switching to password_hash in future
+    $userIp = $_SERVER['REMOTE_ADDR'];
     $logonTime = date("Y-m-d H:i:s");
-    $contactNo = NULL;
-    $userId = NULL;
-    $userEmail = NULL;
 
-    // Check login in admin table
-    $stmt = $con->prepare("SELECT id, contactNo FROM admin WHERE userName = ? AND password = ?");
-    $stmt->bind_param("ss", $userName, $password);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $admin = $result->fetch_assoc();
+    $userData = null;
+    $userEmail = null;
+    $contactNo = null;
 
-    // If not found in admin, check the users table
-    if (!$admin) {
-        $stmt = $con->prepare("SELECT id, contactNo, email FROM cusupdeli WHERE userName = ? AND password = ? AND forwarding = 'usr' AND status = 'A'");
-        $stmt->bind_param("ss", $userName, $password);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-    }
+    try {
+        // Check admin table
+        $stmt = $pdo->prepare("SELECT id, contactNo FROM admin WHERE userName = ? AND password = ?");
+        $stmt->execute([$userName, $password]);
+        $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // If user found in either admin or users table
-    if ($admin || $user) {
-        $userData = $admin ?: $user; // Use admin data if found, otherwise use user data
-        $_SESSION['alogin'] = $userName;
-        $_SESSION['id'] = $userData['id'];
-        $contactNo = $userData['contactNo'];
-        $userId = $userData['id'];
-        $userEmail = $user['email'] ?? NULL; // Only for users, admin doesn't have userEmail
+        // If not found in admin, check cusupdeli
+        if (!$admin) {
+            $stmt = $pdo->prepare("SELECT id, contactNo, email FROM cusupdeli WHERE userName = ? AND password = ? AND forwarding = 'usr' AND status = 'A'");
+            $stmt->execute([$userName, $password]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-        // Insert successful login attempt into userlog
-        $stmt = $con->prepare("INSERT INTO userlog (userName, userEmail, password, contactNo, userIp, status, logonTime) 
-                               VALUES (?, ?, ?, ?, ?, 1, ?)");
-        $stmt->bind_param("ssssss", $userName, $userEmail, $password, $contactNo, $userIp, $logonTime);
-        $stmt->execute();
-		
-		$_SESSION['userlog_id'] = $con->insert_id;
+        if ($admin || $user) {
+            $userData = $admin ?? $user;
+            $contactNo = $userData['contactNo'];
+            $userId = $userData['id'];
+            $userEmail = $user['email'] ?? null;
 
-        // Redirect to home page
-        $extra = "home/index.php";
-        $host = $_SERVER['HTTP_HOST'];
-        $uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
-        header("location:http://$host$uri/$extra");
-        exit();
-    } else {
-        $_SESSION['errmsg'] = "Invalid username or password";
+            $_SESSION['alogin'] = $userName;
+            $_SESSION['id'] = $userId;
 
-        // Redirect back to login page
-        $extra = "index.php";
-        $host = $_SERVER['HTTP_HOST'];
-        $uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
-        header("location:http://$host$uri/$extra");
-        exit();
-        exit();
+            // Insert into userlog
+            $stmt = $pdo->prepare("INSERT INTO userlog (userName, userEmail, password, contactNo, userIp, status, logonTime) 
+                                   VALUES (?, ?, ?, ?, ?, 1, ?)");
+            $stmt->execute([$userName, $userEmail, $password, $contactNo, $userIp, $logonTime]);
+
+            $_SESSION['userlog_id'] = $pdo->lastInsertId();
+
+            // Redirect
+            header("Location: home/index.php");
+            exit;
+        } else {
+            $_SESSION['errmsg'] = "Invalid username or password";
+            header("Location: index.php");
+            exit;
+        }
+    } catch (PDOException $e) {
+        echo "Database error: " . $e->getMessage();
+        exit;
     }
 }
 ?>
@@ -107,19 +98,16 @@ if (isset($_POST['submit'])) {
 				<div class="d-flex justify-content-center links">
 				  <a href="index.php">
 					<?php
-					if (isset($con) && $con) {
-						$sql = mysqli_query($con, "SELECT * FROM COMPANY a LEFT JOIN BASIC b ON a.id = b.compId WHERE a.id = 1 AND a.status = 'A'");
-						if ($sql) {
-							while ($row = mysqli_fetch_array($sql)) {
-								?>
-								<img src="logo/<?php echo $row['id']; ?>/<?php echo $row['logo']; ?>" />
-								<?php
-							}
-						} else {
-							echo "Query failed: " . mysqli_error($con);
+					try {
+						$stmt = $pdo->prepare("SELECT * FROM COMPANY a LEFT JOIN BASIC b ON a.id = b.compId WHERE a.id = 1 AND a.status = 'A'");
+						$stmt->execute();
+						$companies = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+						foreach ($companies as $row) {
+							echo '<img src="logo/' . $row['id'] . '/' . $row['logo'] . '" />';
 						}
-					} else {
-						echo "Database connection not available.";
+					} catch (PDOException $e) {
+						echo "Query failed: " . $e->getMessage();
 					}
 					?>
 				  </a>

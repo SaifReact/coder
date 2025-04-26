@@ -1,26 +1,25 @@
 <?php
 session_start();
-include('../../config/config.php');
+include('../../config/config.php'); // Assumes PDO connection is stored in $pdo
 
 if (empty($_SESSION['alogin'])) {
-    header('location:index.php');
+    header('Location: index.php');
     exit();
 }
 
 $couponId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$coupon = ['couponCode' => '', 'cashOff'  => '', 'value' => '', 'status' => '' ];
+$coupon = ['compId' => '', 'proId' => '', 'couponCode' => '', 'cashOff' => '', 'value' => '', 'cashOffPrice' => '', 'status' => ''];
 
-function getCoupon($con, $couponId) {
-    $stmt = $con->prepare("SELECT * FROM coupon");
-    $stmt->bind_param("i", $couponId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-    return $result->fetch_assoc() ?: null;
+// Fetch coupon by ID
+function getCoupon(PDO $pdo, int $couponId): ?array {
+    $stmt = $pdo->prepare("SELECT * FROM coupon WHERE id = :id");
+    $stmt->execute([':id' => $couponId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
+// Load existing coupon if ID is provided
 if ($couponId > 0) {
-    $couponData = getCoupon($con, $couponId);
+    $couponData = getCoupon($pdo, $couponId);
     if ($couponData) {
         $coupon = $couponData;
     } else {
@@ -30,11 +29,12 @@ if ($couponId > 0) {
     }
 }
 
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cashOff = trim($_POST['cashOff'] ?? '');
     $value = $cashOff / 100;
     $couponCode = 'coupon' . $cashOff;
-    $status = trim($_POST['status'] ?? 'A'); // Set default status to 'A' if not provided
+    $status = trim($_POST['status'] ?? 'A');
 
     if (empty($cashOff)) {
         $_SESSION['warnmsg'] = "Input Information are required (ইনপুট তথ্য অতি আবশ্যক).";
@@ -43,56 +43,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($couponId > 0) {
-        // Update only if there are changes
-        if ($cashOff !== $coupon['cashOff'] || $value !== $coupon['value'] || $couponCode !== $coupon['couponCode'] || $status !== $coupon['status']) {
-            $stmt = $con->prepare("UPDATE coupon SET couponCode = ?, cashOff = ?, value = ?, status = ? WHERE id = ?");
-            
-            if (!$stmt) {
-                die("Prepare failed: hi" . $con->error); // Debugging: Show MySQL error
-            }
-
-            $stmt->bind_param("ssssi", $couponCode, $cashOff, $value, $status, $couponId);
-            $stmt->execute();
-            $stmt->close();
-            
+        // Update if changes exist
+        if ($cashOff !== $coupon['cashOff'] || $value != $coupon['value'] || $couponCode !== $coupon['couponCode'] || $status !== $coupon['status']) {
+            $stmt = $pdo->prepare("UPDATE coupon SET couponCode = :couponCode, cashOff = :cashOff, value = :value, status = :status WHERE id = :id");
+            $stmt->execute([
+                ':couponCode' => $couponCode,
+                ':cashOff' => $cashOff,
+                ':value' => $value,
+                ':status' => $status,
+                ':id' => $couponId
+            ]);
             $_SESSION['msg'] = "Updated Successfully (সফলভাবে হালনাগাদ করা হয়েছে)!";
         } else {
             $_SESSION['warnmsg'] = "No changes detected (কোন পরিবর্তন সনাক্ত করা যায়নি)।";
         }
     } else {
-        $stmt = $con->prepare("INSERT INTO coupon (couponCode, cashOff, value, status) VALUES (?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO coupon (couponCode, cashOff, value, status) VALUES (:couponCode, :cashOff, :value, :status)");
+        $success = $stmt->execute([
+            ':couponCode' => $couponCode,
+            ':cashOff' => $cashOff,
+            ':value' => $value,
+            ':status' => $status
+        ]);
 
-        if (!$stmt) {
-            die("Prepare failed: hello" . $con->error);
-        }
-
-        $stmt->bind_param("ssss", $couponCode, $cashOff, $value, $status);
-        
-        if ($stmt->execute()) {
+        if ($success) {
             $_SESSION['msg'] = "Added Successfully (সফলভাবে সংযুক্ত করা হয়েছে)!";
         } else {
             $_SESSION['warnmsg'] = "Database error: Operation failed.";
         }
-
-        $stmt->close();
     }
 
     header('Location: coupon.php');
     exit();
 }
 
-
+// Handle deletion
 if (isset($_GET['del']) && $couponId > 0) {
-    $coupon = getCoupon($con, $couponId);
+    $coupon = getCoupon($pdo, $couponId);
     if ($coupon) {
-        $stmt = $con->prepare("DELETE FROM coupon WHERE id = ?");
-        $stmt->bind_param("i", $couponId);
-        if ($stmt->execute()) {
-            $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
-        } else {
-            $_SESSION['delmsg'] = "Database error: Failed to delete cat.";
-        }
-        $stmt->close();
+        $stmt = $pdo->prepare("DELETE FROM coupon WHERE id = :id");
+        $stmt->execute([':id' => $couponId]);
+        $_SESSION['delmsg'] = "Deleted Successfully (সফলভাবে মুছে ফেলা হয়েছে)!";
     } else {
         $_SESSION['delmsg'] = "Coupon not found. Cannot delete.";
     }
@@ -112,7 +103,7 @@ if (isset($_GET['del']) && $couponId > 0) {
          <!-- PAGE CONTAINER-->
          <div class="page-container2">
             <!-- HEADER DESKTOP-->
-            <?php include('share/header.php');?>
+            <header class="header-desktop2"> <?php include('share/header.php');?> </header>
             <?php include('share/side-menu.php');?>
             <!-- END HEADER DESKTOP-->
             <!-- BREADCRUMB-->
@@ -151,10 +142,72 @@ if (isset($_GET['del']) && $couponId > 0) {
                               <div class="card-body">
                                  <form id="couponForm" action="" method="post" enctype="multipart/form-data" novalidate="novalidate">
                                     <div class="row">
+									   <div class="col-6">
+											<div class="form-group">
+												<label for="compId" class="form-control-label">Company Name ( কোম্পানির নাম )</label>
+												<?php
+												$selectedCompId = $basic['compId'] ?? 0;
+
+												echo '<select name="compId" id="compId" class="form-control">';
+												echo '<option value="0"' . ($selectedCompId == 0 ? ' selected' : '') . '>Please Select - নির্বাচন করুন</option>';
+
+												try {
+													$stmt = $pdo->query("SELECT id, companyName, companyName_bn FROM company WHERE status = 'A'");
+													while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+														$id = (int)$row['id'];
+														$selected = ($id === (int)$selectedCompId) ? ' selected' : '';
+														$name = htmlentities($row['companyName']);
+														$name_bn = htmlentities($row['companyName_bn']);
+														echo "<option value='{$id}'{$selected}>{$name} - {$name_bn}</option>";
+													}
+												} catch (PDOException $e) {
+													echo '<option value="">Error loading companies</option>';
+												}
+
+												echo '</select>';
+												?>
+											</div>
+										</div>
+										<div class="col-6">
+											<div class="form-group">
+												<label for="proId" class="form-control-label">Product Name ( পণ্যের নাম )</label>
+												<?php
+												$selectedProId = $basic['proId'] ?? 0;
+
+												echo '<select name="proId" id="proId" class="form-control">';
+												echo '<option value="0"' . ($selectedProId == 0 ? ' selected' : '') . '>Please Select - নির্বাচন করুন</option>';
+
+												try {
+													$stmt = $pdo->query("SELECT * FROM products WHERE status = 'A'");
+													while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+														$id = (int)$row['id'];
+														$selected = ($id === (int)$selectedProId) ? ' selected' : '';
+														$name = htmlentities($row['productName']);
+														$name_bn = htmlentities($row['productName_bn']);
+														echo "<option value='{$id}'{$selected}>{$name} - {$name_bn}</option>";
+													}
+												} catch (PDOException $e) {
+													echo '<option value="">Error loading products</option>';
+												}
+
+												echo '</select>';
+												?>
+											</div>
+										</div>
+										<div class="col-6">
+                                          <label for="price" class="control-label mb-1">Price ( বর্তমান মূল্য )</label>
+                                             <input id="price" name="price" type="text" class="form-control price valid" autocomplete="price"
+                                                placeholder="Enter Present Price" value="<?php echo htmlentities($coupon['price']); ?>" disabled>
+                                       </div>
                                        <div class="col-6">
-                                          <label for="cashOff" class="control-label mb-1">Cash Offer ( নগদ অফার - নীট মূল্য হতে যত টাকা কমবে )</label>
-                                             <input id="cashOff" name="cashOff" type="text" class="form-control cashOff valid" data-val="true" data-val-required="Please enter the name on card" autocomplete="cashOff"
+                                          <label for="cashOff" class="control-label mb-1">Cash Offer ( নগদ অফার (%) )</label>
+                                             <input id="cashOff" name="cashOff" type="text" class="form-control cashOff valid" autocomplete="cashOff"
                                                 placeholder="Enter Cash Off Taka" value="<?php echo htmlentities($coupon['cashOff']); ?>">
+                                       </div>
+									   <div class="col-6">
+                                          <label for="cashOff" class="control-label mb-1">Cash Off Price ( অফারের পরের মূল্য )</label>
+                                             <input id="cashOffPrice" name="cashOffPrice" type="text" class="form-control cashOffPrice valid" autocomplete="cashOffPrice"
+                                                placeholder="Enter Cash Off Price" value="<?php echo htmlentities($coupon['cashOffPrice']); ?>" disabled>
                                        </div>
 									   <?php if ($couponId && $coupon['status']) { ?>
 										<div class="col-6">
@@ -189,33 +242,42 @@ if (isset($_GET['del']) && $couponId > 0) {
                                     </thead>
                                  <tbody>
 								 <?php 
-                                        $query = $con->query("SELECT * FROM coupon ORDER BY id DESC");
-                                        $cnt = 1;
-                                        while ($row = $query->fetch_assoc()) { 
-                                        ?>
-                                    <tr>
-                                       <td><?php echo $cnt++; ?></td>
-									   <td><?php echo htmlentities($row['cashOff']); ?></td>
-									   <td><?php echo htmlentities($row['couponCode']); ?></td>
-									   <td><?php echo htmlentities($row['value']); ?></td>
-									   <td><?php echo htmlentities($row['status'] == 'A') ? 'Active (সক্রিয়)' : 'Inactive (নিষ্ক্রিয়)'; ?></td>
-									   <td><?php echo htmlentities($row['creation_date']); ?></td>
-									   <td>
-                                        <div class="table-data-feature">
-											<button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
-												<a href="coupon.php?id=<?php echo $row['id']; ?>" style="text-decoration: none; display: flex; align-items: center;">
-													<i class="zmdi zmdi-edit" style="color:#008000"></i>
-												</a>
-											</button>
-											<button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
-												<a href="coupon.php?id=<?php echo $row['id']; ?>&del=delete" onClick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
-													<i class="zmdi zmdi-delete" style="color:#FF0000"></i>
-												</a>
-											</button>
-                                        </div>
-                                       </td>
-                                    </tr>
-                                   <?php } ?>
+									try {
+										$stmt = $pdo->query("SELECT * FROM coupon ORDER BY id DESC");
+										$coupons = $stmt->fetchAll(PDO::FETCH_ASSOC);
+										$cnt = 1;
+
+										foreach ($coupons as $row): 
+									?>
+									<tr>
+										<td><?= $cnt++; ?></td>
+										<td><?= htmlentities($row['cashOff']) ?></td>
+										<td><?= htmlentities($row['couponCode']) ?></td>
+										<td><?= htmlentities($row['value']) ?></td>
+										<td><?= $row['status'] === 'A' ? 'Active (সক্রিয়)' : 'Inactive (নিষ্ক্রিয়)' ?></td>
+										<td><?= htmlentities($row['creation_date']) ?></td>
+										<td>
+											<div class="table-data-feature">
+												<button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
+													<a href="coupon.php?id=<?= $row['id'] ?>" style="text-decoration: none; display: flex; align-items: center;">
+														<i class="zmdi zmdi-edit" style="color:#008000"></i>
+													</a>
+												</button>
+												<button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
+													<a href="coupon.php?id=<?= $row['id'] ?>&del=delete" onClick="return confirm('Are you sure (আপনি কি নিশ্চিত)?')">
+														<i class="zmdi zmdi-delete" style="color:#FF0000"></i>
+													</a>
+												</button>
+											</div>
+										</td>
+									</tr>
+									<?php 
+										endforeach;
+									} catch (PDOException $e) {
+										echo "<tr><td colspan='7'>Error: " . htmlentities($e->getMessage()) . "</td></tr>";
+									}
+									?>
+
                                  </tbody>
                               </table>
                            </div>
