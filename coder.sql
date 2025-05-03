@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 26, 2025 at 08:50 PM
+-- Generation Time: May 03, 2025 at 07:48 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.3
 
@@ -202,7 +202,28 @@ INSERT INTO `company` (`id`, `companyName`, `companyName_bn`, `status`, `creatio
 (4, 'Coder Station', 'কোডার স্টেশন', 'A', '2025-04-11 18:01:02'),
 (5, 'Coder Homes & Builders', 'কোডার হোমস এন্ড বিল্ডার্স', 'A', '2025-04-11 18:02:23'),
 (6, 'Coder Hotels & Resorts', 'কোডার হোটেল এন্ড রিসোর্টস', 'A', '2025-04-11 18:04:04'),
-(7, 'Coder IT Training Center', 'কোডার আইটি ট্রেনিং সেন্টার', 'I', '2025-04-14 04:37:35');
+(7, 'Coder IT Training Center', 'কোডার আইটি ট্রেনিং সেন্টার', 'A', '2025-04-14 04:37:35');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `compwiseimg`
+--
+
+CREATE TABLE `compwiseimg` (
+  `id` int(11) NOT NULL,
+  `compId` int(11) NOT NULL,
+  `compInputName` varchar(100) NOT NULL,
+  `status` varchar(3) NOT NULL,
+  `creationDate` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `compwiseimg`
+--
+
+INSERT INTO `compwiseimg` (`id`, `compId`, `compInputName`, `status`, `creationDate`) VALUES
+(1, 1, 'logo - লোগো', 'A', '2025-05-03 16:37:46');
 
 -- --------------------------------------------------------
 
@@ -674,7 +695,7 @@ CREATE TABLE `policy` (
 --
 
 INSERT INTO `policy` (`id`, `compId`, `policyName`, `dataToggle`, `icon`, `description`, `status`, `creationDate`) VALUES
-(2, 3, 'Seller Policy - বিক্রয় নীতি', 'sellPolicy', 'fa-file-text', '<p><strong>Hello</strong> Bangladesh</p>', 'A', '2025-04-26 18:09:47');
+(2, 3, 'Seller Policy - বিক্রয় নীতি', 'sellPolicy', 'fa-file-text', '<p><strong>Hello</strong> Bangladesh</p>', 'A', '2025-05-03 17:46:12');
 
 -- --------------------------------------------------------
 
@@ -940,7 +961,8 @@ INSERT INTO `userlog` (`id`, `userName`, `userEmail`, `password`, `contactNo`, `
 (74, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 14:37:52', NULL, 1),
 (75, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 14:42:33', NULL, 1),
 (76, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3a3a3100000000000000000000000000, '2025-04-26 14:43:53', NULL, 1),
-(77, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 14:49:48', NULL, 1);
+(77, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-04-26 14:49:48', NULL, 1),
+(78, 'admin', NULL, '9ea986c4fa3eb4b4a4d7430db8734468', '1540505646', 0x3132372e302e302e3100000000000000, '2025-05-03 11:48:56', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -1053,6 +1075,12 @@ ALTER TABLE `color`
 -- Indexes for table `company`
 --
 ALTER TABLE `company`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `compwiseimg`
+--
+ALTER TABLE `compwiseimg`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1204,6 +1232,12 @@ ALTER TABLE `company`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
+-- AUTO_INCREMENT for table `compwiseimg`
+--
+ALTER TABLE `compwiseimg`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `coupon`
 --
 ALTER TABLE `coupon`
@@ -1279,7 +1313,7 @@ ALTER TABLE `supplier`
 -- AUTO_INCREMENT for table `userlog`
 --
 ALTER TABLE `userlog`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT for table `users`

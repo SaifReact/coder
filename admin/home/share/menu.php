@@ -49,10 +49,23 @@ $user = $_SESSION['alogin'];
               <a href="policy.php">
                 <i class="fas fa-tachometer-alt"></i>Policy Info </a>
             </li>
-            <li>
-              <a href="images.php">
-                <i class="fas fa-tachometer-alt"></i>Import Images </a>
-            </li>
+            <li class="has-sub">
+			  <a class="js-arrow" href="#">
+				<i class="fas fa-trophy"></i>Images Importing <span class="arrow">
+				  <i class="fas fa-angle-down"></i>
+				</span>
+			  </a>
+			  <ul class="list-unstyled navbar__sub-list js-sub-list">
+				<li>
+				  <a href="compwiseimg.php">
+					<i class="fas fa-shopping-basket"></i>Input Image </a>
+				</li>
+				<li>
+				  <a href="images.php">
+					<i class="fas fa-table"></i>Image Input </a>
+				</li>
+			  </ul>
+			</li>
             <li>
               <a href="coupon.php">
                 <i class="fas fa-tachometer-alt"></i>Coupon </a>
