@@ -2,7 +2,7 @@
 session_start();
 include("../config/config.php");
 
-if (!$con) {
+if (!isset($pdo)) {
     die("Database connection failed in logout function");
 }
 
@@ -10,21 +10,19 @@ if (!empty($_SESSION['alogin']) && !empty($_SESSION['userlog_id'])) {
     $userName = $_SESSION['alogin'];
     $logId = $_SESSION['userlog_id'];
 
-    $stmt = $con->prepare("UPDATE userlog SET status = 0, logoutTime = NOW() WHERE userName = ? AND id = ?");
-    
-    if ($stmt) {
-        $stmt->bind_param("si", $userName, $logId);
+    try {
+        $stmt = $pdo->prepare("UPDATE userlog SET status = 0, logoutTime = NOW() WHERE userName = :userName AND id = :logId");
+        $stmt->bindParam(':userName', $userName, PDO::PARAM_STR);
+        $stmt->bindParam(':logId', $logId, PDO::PARAM_INT);
         $stmt->execute();
 
-        if ($stmt->affected_rows > 0) {
+        if ($stmt->rowCount() > 0) {
             error_log("Userlog updated successfully for user: $userName, logId: $logId");
         } else {
             error_log("No rows updated for user: $userName, logId: $logId");
         }
-
-        $stmt->close();
-    } else {
-        error_log("Prepare failed: " . $con->error);
+    } catch (PDOException $e) {
+        error_log("PDO Exception: " . $e->getMessage());
     }
 }
 
@@ -33,4 +31,3 @@ session_destroy();
 
 header("Location: index.php");
 exit();
-?>

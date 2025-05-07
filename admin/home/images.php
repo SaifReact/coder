@@ -146,6 +146,32 @@ try {
 <!DOCTYPE html>
 <html lang="en">
    <?php include('share/head.php');?>
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+		function getImagePlace(compId) {
+			console.log("Calling getImagePlace with compId:", compId);
+
+			if (!compId || compId == 0) {
+				$("#imgType").html('<option value="">Select Image Place</option>');
+				return;
+			}
+
+			$.ajax({
+				type: "POST",
+				url: "extra/get_images.php",
+				data: { compId: compId },
+				dataType: "html",
+				success: function(response) {
+					console.log("Response received:", response);
+					$("#imgType").html('<option value="">Select Image Place</option>' + response);
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.error("AJAX Error:", textStatus, errorThrown, jqXHR.responseText);
+					alert("Failed to load Image Place. Try again.");
+				}
+			});
+		}
+	</script>
    <body class="animsition">
       <div class="page-wrapper">
          <!-- MENU SIDEBAR-->
@@ -200,7 +226,7 @@ try {
 												<?php
 												$selectedCompId = $basic['compId'] ?? 0;
 
-												echo '<select name="compId" id="compId" class="form-control">';
+												echo '<select name="compId" id="compId" class="form-control" onChange="getImagePlace(this.value);">';
 												echo '<option value="0"' . ($selectedCompId == 0 ? ' selected' : '') . '>Please Select - নির্বাচন করুন</option>';
 
 												try {
@@ -221,7 +247,18 @@ try {
 												?>
 											</div>
 										</div>
-									   <div class="col-6">
+										<div class="col-6">
+											<div class="form-group">
+												<label class="form-control-label" for="imgType">
+													Image Place ( ছবির স্থান )
+												</label>
+												<select name="imgType" id="imgType" class="form-control" required>
+													<option value="">Select Image Place</option>
+													<!-- Options will be dynamically loaded by JavaScript -->
+												</select>
+											</div>
+										</div>
+									   <!--<div class="col-6">
 											<div class="form-group">
 												<label for="select" class="form-control-label">Image Place ( ছবির স্থান )</label>
 												<select name="imgType" id="imgType" class="form-control">
@@ -246,7 +283,7 @@ try {
 													?>
 												</select>
 											</div>
-										</div>
+										</div>-->
 
                                        <div class="col-6">
                                           <label for="imgName" class="control-label mb-1">Image Name ( ছবির নাম )</label>
